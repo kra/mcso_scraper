@@ -1,0 +1,6 @@
+Scrape the Multnomah County Sherrif's Office inmate data website.
+
+    scrapy crawl mcso --set=FEED_URI=items.json --set=FEED_FORMAT=json
+
+    curl http://www.mcso.us/PAID/Default.aspx -d @data -A "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_5_8) AppleWebKit/535.1 (KHTML, like Gecko) Chrome/13.0.782.220 Safari/535.1"
+
