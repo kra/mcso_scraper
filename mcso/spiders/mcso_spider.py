@@ -101,6 +101,7 @@ class McsoSpider(BaseSpider):
                '//table[@id="ctl00_MainContent_CaseDataList"]')
        except ValueError:
            # recent bookings are not always complete
+           # this might be better handled by the pipeline validator
            logging.warning('incomplete page, try again later')
            return
        # XXX can't get scrapy's xpath to do me

@@ -12,6 +12,6 @@ BOT_VERSION = '1.0'
 SPIDER_MODULES = ['mcso.spiders']
 NEWSPIDER_MODULE = 'mcso.spiders'
 DEFAULT_ITEM_CLASS = 'mcso.items.McsoItem'
-#USER_AGENT = '%s/%s' % (BOT_NAME, BOT_VERSION)
+ITEM_PIPELINES = ['mcso.pipelines.McsoPipeline']
 # asp will forbid form submission unless we spoof a human user-agent
 USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_5_8) AppleWebKit/535.1 (KHTML, like Gecko) Chrome/13.0.782.220 Safari/535.1'
