@@ -9,18 +9,29 @@
   <script src="jquery-1.6.4.js"></script>
 
   <script>
-  $.getJSON('foo.json', function(data) {
-    var items = [];
 
+  function obj_to_dlist(data) {
+    var items = [];
     $.each(data, function(key, val) {
-      items.push('<dt>' + key + '</dt><dd>' + val + '</dd>');
+      if (key == 'cases') {
+        items.push('<dt>' + key + '</dt><dd>' + val + '</dd>');
+      } else {
+        items.push('<dt>' + key + '</dt><dd>' + val + '</dd>');
+      }
     });
 
-    $('<dl/>', {
+    return $('<dl/>', {
       'class': 'booking-list',
       'html': items.join('')
-    }).appendTo('body');
+    });
+
+    }
+
+  $.getJSON('foo.json', function(data) {
+    var items = obj_to_dlist(data);
+    items.appendTo('body');
   });
+            
   </script>
     
 </body>
