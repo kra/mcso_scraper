@@ -9,7 +9,6 @@
   <script src="jquery-1.6.4.js"></script>
 
   <script>
-
   function obj_to_dlist(data) {
     var items = [];
     $.each(data, function(key, val) {
@@ -19,19 +18,28 @@
         items.push('<dt>' + key + '</dt><dd>' + val + '</dd>');
       }
     });
-
+      
     return $('<dl/>', {
       'class': 'booking-list',
       'html': items.join('')
     });
 
     }
+  
+  function url_param(name) {
+    var results = new RegExp(
+        '[\\?&]' + name + '=([^&#]*)').exec(window.location.href);
+    if (!results) { return 0; }
+    return results[1] || 0;
+  }
+  
+  json_href = url_param('booking');
 
-  $.getJSON('foo.json', function(data) {
+  $.getJSON(json_href, function(data) {
     var items = obj_to_dlist(data);
     items.appendTo('body');
   });
-            
+
   </script>
     
 </body>
