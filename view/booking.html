@@ -33,7 +33,7 @@
     return results[1] || 0;
   }
   
-  json_href = url_param('booking');
+  json_href = '../data/' + url_param('booking');
 
   $.getJSON(json_href, function(data) {
     var items = obj_to_dlist(data);
