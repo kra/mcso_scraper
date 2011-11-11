@@ -1,0 +1,51 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Booking</title>
+</head>
+<body>
+  <script src="jquery-1.6.4.js"></script>
+  <script src="DataTables-1.8.2/media/js/jquery.dataTables.js"></script>
+
+  <script>
+  $(document).ready(function() {
+
+      // for demo purposes, get index from pregenerated index file
+      // index is a sequence of objs
+      // assume we'll want a DB for real life as this grows, rather than
+      // rebuilding the indices with each add
+      var index_href = '../data/booking_index'
+      $.getJSON(index_href, function(index_objs) {
+
+          var index_arrays = [];
+          index_objs.map(function (obj) {
+              index_arrays.push(
+                  [obj.id, obj.name, obj.age, obj.swisid, obj.race,
+                   obj.gender, obj.arrestdate, obj.arrestingagency]);
+          });
+              
+          $('#booking_table').dataTable({
+    	  "aaData": index_arrays,
+              "aoColumns": [
+                  { "sTitle": "id" },
+                  { "sTitle": "name" },
+                  { "sTitle": "age" },
+                  { "sTitle": "swisid" },
+                  { "sTitle": "race" },
+                  { "sTitle": "gender" },
+                  { "sTitle": "arrestdate" },
+                  { "sTitle": "arrestingagency" }],
+          });
+
+      });
+
+  });
+
+  </script>
+
+  <table id="booking_table">
+  </table>
+
+</body>
+</html>
