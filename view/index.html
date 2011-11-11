@@ -18,10 +18,16 @@
       var index_href = '../data/booking_index'
       $.getJSON(index_href, function(index_objs) {
 
+          function index_href(index_obj) {
+              return 'booking.html?booking=' + index_obj.id
+          }
+
           var index_arrays = [];
           index_objs.map(function (obj) {
+              href = index_href(obj);
+              link = '<a href="' + href + '">' + obj.name + '</a>';
               index_arrays.push(
-                  [obj.id, obj.name, obj.age, obj.swisid, obj.race,
+                  [link, obj.name, obj.age, obj.swisid, obj.race,
                    obj.gender, obj.arrestdate, obj.arrestingagency]);
           });
               
