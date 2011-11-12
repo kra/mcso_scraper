@@ -5,43 +5,44 @@
   <title>Booking</title>
 </head>
 <body>
-  <a href="http://jquery.com/">jQuery</a>
   <script src="jquery-1.6.4.js"></script>
 
   <script>
   $(document).ready(function() {
 
-    function obj_to_dlist(data) {
-      var items = [];
-      $.each(data, function(key, val) {
-        if (key == 'cases') {
-          items.push('<dt>' + key + '</dt><dd>' + val + '</dd>');
-        } else {
-          items.push('<dt>' + key + '</dt><dd>' + val + '</dd>');
-        }
-      });
-        
-      return $('<dl/>', {
-        'class': 'booking-list',
-        'html': items.join('')
-      });
-
+      function obj_to_dlist(booking_obj) {
+          // return a <dl> element formatted from the given object
+          var items = [];
+          $.each(booking_obj, function(key, val) {
+              if (key == 'cases') {
+                  items.push('<dt>' + key + '</dt><dd>' + val + '</dd>');
+              } else {
+                  items.push('<dt>' + key + '</dt><dd>' + val + '</dd>');
+              }
+          });
+          
+          return $('<dl/>', {
+              'class': 'booking-list',
+              'html': items.join('')
+          });
+          
       }
-    
-    function url_param(name) {
-      var results = new RegExp(
-          '[\\?&]' + name + '=([^&#]*)').exec(window.location.href);
-      if (!results) { return 0; }
-      return results[1] || 0;
-    }
-    
-    json_href = '../data/' + url_param('booking');
+      
+      function url_param(name) {
+          // return the named query paramater from the current url
+          var results = new RegExp(
+              '[\\?&]' + name + '=([^&#]*)').exec(window.location.href);
+          if (!results) { return 0; }
+          return results[1] || 0;
+      }
 
-    $.getJSON(json_href, function(data) {
-      var items = obj_to_dlist(data);
-      items.appendTo('body');
-    });
-
+      // write HTML from the indicated booking data file to document body
+      var json_href = '../data/' + url_param('booking');
+      $.getJSON(json_href, function(data) {
+          var items = obj_to_dlist(data);
+          items.appendTo('body');
+      });
+      
   });    
 
   </script>
