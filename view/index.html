@@ -15,20 +15,21 @@
   <script>
   $(document).ready(function() {
 
-      // for demo purposes, get index from pregenerated index file
+      // for demo purposes, get index from pregenerated index file, pointing
+      // to json files
       // index is a sequence of objs
       // assume we'll want a DB for real life as this grows, rather than
       // rebuilding the indices with each add
-      var index_href = '../data/booking_index'
-      $.getJSON(index_href, function(index_objs) {
 
-          function index_href(index_obj) {
-              return 'booking.html?booking=' + index_obj.id
-          }
+      function index_obj_href(index_obj) {
+          return 'booking.html?booking=' + index_obj.id
+      }
 
+      var booking_index_href = '../data/booking_index'
+      $.getJSON(booking_index_href, function(index_objs) {
           var index_arrays = [];
           index_objs.map(function (obj) {
-              href = index_href(obj);
+              href = index_obj_href(obj);
               link = '<a href="' + href + '">' + obj.name + '</a>';
               index_arrays.push(
                   [link, obj.name, obj.age, obj.swisid, obj.race,
@@ -47,14 +48,38 @@
                   { "sTitle": "arrestdate" },
                   { "sTitle": "arrestingagency" }],
           });
+      });
 
+      var charge_index_href = '../data/charge_index'
+      $.getJSON(charge_index_href, function(index_objs) {
+          var index_arrays = [];
+          index_objs.map(function (obj) {
+              href = index_obj_href(obj);
+              link = '<a href="' + href + '">' + obj.id + '</a>';
+              index_arrays.push([link, obj.status, obj.charge, obj.bail]);
+          });
+              
+          $('#charge_table').dataTable({
+    	  "aaData": index_arrays,
+              "aoColumns": [
+                  { "sTitle": "id" },
+                  { "sTitle": "status" },
+                  { "sTitle": "charge" },
+                  { "sTitle": "bail" }
+              ],
+          });
       });
 
   });
 
   </script>
 
+  <h2>Booking Index</h2>
   <table id="booking_table">
+  </table>
+
+  <h2>Charge Index</h2>
+  <table id="charge_table">
   </table>
 
 </body>
