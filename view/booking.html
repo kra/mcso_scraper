@@ -14,7 +14,8 @@
           // return a string of <dt><dd> elements from the given array
           var items = [];
           $.each(arr, function(index, val) {
-              items.push('<dt>' + name + '</dt><dd><dl>' + obj_to_dlist(val) + '</dl></dd>');
+              items.push('<dt>' + name + '</dt><dd><dl>' + 
+                         obj_to_dlist(val) + '</dl></dd>');
           });
           
           return '<dl>' + items.join('') + '</dl>';
@@ -25,14 +26,18 @@
           // return a string of <dt><dd> elements from the given object
           var items = [];
           $.each(booking_obj, function(key, val) {
+              // munge attributees
+              if (key == 'url') {
+                  val = '<a href="' + val + '">' + val + '</a>';
+              }
               if ((key == 'cases') || (key == 'charges')) {
                   if (key == 'cases') {
                       var name = 'case';
                   } else if (key == 'charges') {
                       var name = 'charge';
                   }
-                  items.push('<dt>' + key + '</dt><dd>' + array_to_dlist(val, name) + '</dd>');
-                  //items.push('<dt>' + key + '</dt><dd>' + val.length + '</dd>');
+                  items.push('<dt>' + key + '</dt><dd>' + 
+                             array_to_dlist(val, name) + '</dd>');
               } else {
                   items.push('<dt>' + key + '</dt><dd>' + val + '</dd>');
               }
