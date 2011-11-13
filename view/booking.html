@@ -10,22 +10,35 @@
   <script>
   $(document).ready(function() {
 
+      function array_to_dlist(arr, name) {
+          // return a string of <dt><dd> elements from the given array
+          var items = [];
+          $.each(arr, function(index, val) {
+              items.push('<dt>' + name + '</dt><dd><dl>' + obj_to_dlist(val) + '</dl></dd>');
+          });
+          
+          return '<dl>' + items.join('') + '</dl>';
+      }
+
+
       function obj_to_dlist(booking_obj) {
-          // return a <dl> element formatted from the given object
+          // return a string of <dt><dd> elements from the given object
           var items = [];
           $.each(booking_obj, function(key, val) {
-              if (key == 'cases') {
-                  items.push('<dt>' + key + '</dt><dd>' + val + '</dd>');
+              if ((key == 'cases') || (key == 'charges')) {
+                  if (key == 'cases') {
+                      var name = 'case';
+                  } else if (key == 'charges') {
+                      var name = 'charge';
+                  }
+                  items.push('<dt>' + key + '</dt><dd>' + array_to_dlist(val, name) + '</dd>');
+                  //items.push('<dt>' + key + '</dt><dd>' + val.length + '</dd>');
               } else {
                   items.push('<dt>' + key + '</dt><dd>' + val + '</dd>');
               }
           });
           
-          return $('<dl/>', {
-              'class': 'booking-list',
-              'html': items.join('')
-          });
-          
+          return items.join('');
       }
       
       function url_param(name) {
@@ -40,7 +53,10 @@
       var json_href = '../data/' + url_param('booking');
       $.getJSON(json_href, function(data) {
           var items = obj_to_dlist(data);
-          items.appendTo('body');
+          $('<dl/>', {
+              'class': 'booking-list',
+              'html': items
+          }).appendTo('body');
       });
       
   });    
