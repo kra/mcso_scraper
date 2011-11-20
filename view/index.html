@@ -30,16 +30,15 @@
           var index_arrays = [];
           index_objs.map(function (obj) {
               href = index_obj_href(obj);
-              link = '<a href="' + href + '">' + obj.name + '</a>';
+              name_link = '<a href="' + href + '">' + obj.name + '</a>';
               index_arrays.push(
-                  [link, obj.name, obj.age, obj.swisid, obj.race,
+                  [name_link, obj.age, obj.swisid, obj.race,
                    obj.gender, obj.arrestdate, obj.arrestingagency]);
           });
               
           $('#booking_table').dataTable({
     	  "aaData": index_arrays,
               "aoColumns": [
-                  { "sTitle": "id" },
                   { "sTitle": "name" },
                   { "sTitle": "age" },
                   { "sTitle": "swisid" },
@@ -55,16 +54,15 @@
           var index_arrays = [];
           index_objs.map(function (obj) {
               href = index_obj_href(obj);
-              link = '<a href="' + href + '">' + obj.id + '</a>';
-              index_arrays.push([link, obj.status, obj.charge, obj.bail]);
+              charge_link = '<a href="' + href + '">' + obj.charge + '</a>';
+              index_arrays.push([charge_link, obj.status, obj.bail]);
           });
               
           $('#charge_table').dataTable({
     	  "aaData": index_arrays,
               "aoColumns": [
-                  { "sTitle": "id" },
-                  { "sTitle": "status" },
                   { "sTitle": "charge" },
+                  { "sTitle": "status" },
                   { "sTitle": "bail" }
               ],
           });
