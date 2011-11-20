@@ -10,6 +10,20 @@
   <script>
   $(document).ready(function() {
 
+      function mugshot_img(obj_url) {
+          // return mugshot img tag for obj
+          var filename = obj_url.split('/').pop();
+          filename = filename.split('?')[1]
+          filename = filename.split('&')[0]
+          return '<img src="' + '../data/' + filename + '"/>';
+          //return filename;
+      }
+
+      function orig_url(obj_url) {
+          // return url for obj in a href tag
+          return '<a href="' + obj_url + '">' + obj_url + '</a>';
+      }
+
       function array_to_dlist(arr, name) {
           // return a string of <dt><dd> elements from the given array
           var items = [];
@@ -21,14 +35,16 @@
           return '<dl>' + items.join('') + '</dl>';
       }
 
-
       function obj_to_dlist(booking_obj) {
           // return a string of <dt><dd> elements from the given object
           var items = [];
           $.each(booking_obj, function(key, val) {
               // munge attributees
               if (key == 'url') {
-                  val = '<a href="' + val + '">' + val + '</a>';
+                  val = orig_url(val);
+              }
+              else if (key == 'mugshot_url') {
+                  val = mugshot_img(val);
               }
               if ((key == 'cases') || (key == 'charges')) {
                   if (key == 'cases') {
