@@ -1,19 +1,55 @@
 from scrapy.conf import settings
-import json
+import sqlite3
+import os
 
+# records in sql, images in fs
+# contrib.pipeline.images.FSImagesStore
+# sqlite: db size limited by single file size - ext3 2TB ext4 16TB
+
+# conn.row_factory = sqlite3.Row
+# cursor = conn.cursor()
+# cursor.execute('select rowid, * from bookings')
+# row = cursor.fetchone()
+# row['rowid']
 
 class McsoPipeline(object):
 
     def __init__(self):
-        self.dir = settings['EXPORT_DIR'] or '.'
-        self.encoder = json.JSONEncoder()
+        self.conn = self.get_conn()
+
+    def get_conn(self):
+        # assume / pathsep
+        sql_filename = '/'.join(
+            (os.path.dirname(os.path.abspath(__file__)),
+             settings['SQLITE_FILENAME']))
+        return sqlite3.connect(sql_filename)
 
     def process_item(self, item, spider):
-        filename = '_'.join(
-            (item['swisid'],
-             item['bookingdate'].replace('/', '_').replace(' ', '_')))
-        filename = '/'.join((self.dir, filename))
-        item_file = open(filename, 'w')
-        item_file.write(self.encoder.encode(dict(item.items())) + '\n')
-        item_file.close
+        cursor = self.conn.cursor()
+        # XXX find mugshot_id
+        mugshot_id = 'XXX'
+        cursor.execute(
+            'INSERT INTO bookings '
+            'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            (mugshot_id, item['url'], item['swisid'], item['name'], item['age'],
+             item['gender'], item['race'], item['height'], item['weight'],
+             item['hair'], item['eyes'], item['arrestingagency'],
+             item['arrestdate'], item['bookingdate'], item['currentstatus'],
+             item['assignedfac'], item['projreldate']))
+        booking_id = cursor.lastrowid
+        for case in item['cases']:
+            cursor.execute(
+                'INSERT INTO cases VALUES (?, ?, ?, ?)',
+                (booking_id,
+                 case['court_case_number'],
+                 case['da_case_number'],
+                 case['citation_number']))
+            case_id = cursor.lastrowid
+            for charge in case['charges']:
+                cursor.execute(
+                    'INSERT INTO charges VALUES (?, ?, ?, ?)',
+                    (case_id, charge['charge'],
+                     charge['bail'],
+                     charge['status']))
+        self.conn.commit()
         return item
