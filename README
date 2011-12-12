@@ -1,4 +1,10 @@
-Scrape the Multnomah County Sherrif's Office booking website.
+Scrape the Multnomah County Sherriff's Office booking website.
+
+requirements:
+
+    python 2.x
+    scrapy
+    flask
 
 set up:
 
