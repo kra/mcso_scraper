@@ -17,7 +17,7 @@ crawl:
 
 view:
 
-   View 'view' directory in browser, use a HTTP server if local
+    cd view && python server.py
 
 curl original:
 
