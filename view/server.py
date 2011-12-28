@@ -21,20 +21,14 @@ def teardown_request(exception):
     if hasattr(g, 'db'):
         g.db.close()
 
-def rows(cur, one=False):
+def rows(cur):
     def row_to_dict(row):
         return dict([(k, row[k]) for k in row.keys()])
-    rows = [row for row in cur]
-    if one:
-        (row,) = rows
-        return row_to_dict(row)
-    return [row_to_dict(row) for row in rows]
+    return [row_to_dict(row) for row in cur]
 
-def booking_index_rows(cur, one=False):
-    index_rows = rows(cur, one)
+def booking_index_rows(cur):
+    index_rows = rows(cur)
     # XXX should do this in the view, or maybe a model
-    if one:
-        raise NotImplementedError
     for row in index_rows:
         row['name_link'] = (
             "<a href='/booking?booking=" + row['swisid'] + "'>" +
@@ -43,10 +37,10 @@ def booking_index_rows(cur, one=False):
 
 @app.route('/data/booking/<swisid>')
 def data_booking(swisid):
-    # XXX not sure swisid is unique, it could be per inmate or otherwise reused
-    #     rows() will raise if we get a dup
-    booking_row = rows(g.db.execute(
-        'SELECT rowid, * FROM bookings WHERE swisid=?', [swisid]), one=True)
+    # XXX not sure swisid is unique, it could be per inmate or otherwise reused,
+    #     this will raise if we get a dup
+    (booking_row,) = rows(g.db.execute(
+        'SELECT rowid, * FROM bookings WHERE swisid=?', [swisid]))
     case_rows = rows(g.db.execute(
             'SELECT rowid, * FROM cases WHERE booking_id=?',
             [booking_row['rowid']]))
@@ -66,6 +60,7 @@ def booking():
 # XXX we get the entire set each call and let the datatable filter it
 @app.route('/data/booking_index')
 def data_booking_index():
+    # {'aaData': [[],[]] }
     return json.dumps(booking_index_rows(g.db.execute(
         'SELECT '
         'rowid, name, age, swisid, race, gender, arrestdate, arrestingagency '
