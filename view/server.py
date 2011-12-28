@@ -35,6 +35,15 @@ def booking_index_rows(cur):
             row['name'] + '</a>')
     return index_rows
 
+def charge_index_rows(cur):
+    index_rows = rows(cur)
+    # XXX should do this in the view, or maybe a model
+    for row in index_rows:
+        row['charge_link'] = (
+            "<a href='/booking?booking=" + str(row["swisid"]) + "'>" +
+            row['charge'] + '</a>')
+    return index_rows
+
 @app.route('/data/booking/<swisid>')
 def data_booking(swisid):
     # XXX not sure swisid is unique, it could be per inmate or otherwise reused,
@@ -57,18 +66,32 @@ def data_booking(swisid):
 def booking():
     return render_template('booking.html')
 
-# XXX we get the entire set each call and let the datatable filter it
+# XXX we get the entire set each call and let the datatable filter/sort it;
+#     switch to server-side to make this more efficient.
 @app.route('/data/booking_index')
 def data_booking_index():
-    # {'aaData': [[],[]] }
     return json.dumps(booking_index_rows(g.db.execute(
         'SELECT '
         'rowid, name, age, swisid, race, gender, arrestdate, arrestingagency '
         'FROM bookings')))
 
+# XXX we get the entire set each call and let the datatable filter/sort it;
+#     switch to server-side to make this more efficient.
+@app.route('/data/charge_index')
+def data_charge_index():
+    return json.dumps(charge_index_rows(g.db.execute(
+        'SELECT bookings.swisid, charges.charge, charges.bail, charges.status '
+        'FROM charges '
+        'JOIN cases ON charges.case_id = cases.rowid '
+        'JOIN bookings ON cases.booking_id = bookings.rowid')))
+
 @app.route('/booking_index')
 def booking_index():
     return render_template('booking_index.html')
+
+@app.route('/charge_index')
+def charge_index():
+    return render_template('charge_index.html')
 
 if __name__ == '__main__':
     #app.run(host='0.0.0.0')
