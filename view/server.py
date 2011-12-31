@@ -1,6 +1,7 @@
 from flask import Flask, g, render_template
 import sqlite3
 import json
+import datetime
 
 app = Flask(__name__)
 
@@ -92,6 +93,28 @@ def booking_index():
 @app.route('/charge_index')
 def charge_index():
     return render_template('charge_index.html')
+
+@app.route('/')
+def index():
+    (bookings_count,) = rows(g.db.execute(
+        'SELECT COUNT(rowid) FROM bookings'))
+    bookings_count = bookings_count['COUNT(rowid)']
+    day_1 = datetime.datetime.utcnow() - datetime.timedelta(days=1)
+    day_7 = datetime.datetime.utcnow() - datetime.timedelta(days=7)
+    (bookings_1_count,) = rows(g.db.execute(
+        'SELECT COUNT(rowid) FROM bookings WHERE created_on>?',
+        (day_1.strftime('%Y-%m-%d %H:%M:%S'),)))
+    bookings_1_count = bookings_1_count['COUNT(rowid)']
+    (bookings_7_count,) = rows(g.db.execute(
+        'SELECT COUNT(rowid) FROM bookings WHERE created_on>?',
+        (day_7.strftime('%Y-%m-%d %H:%M:%S'),)))
+    bookings_7_count = bookings_7_count['COUNT(rowid)']
+
+    return render_template(
+        'index.html',
+        bookings_count=bookings_count,
+        bookings_1_count=bookings_1_count,
+        bookings_7_count=bookings_7_count)
 
 if __name__ == '__main__':
     #app.run(host='0.0.0.0')

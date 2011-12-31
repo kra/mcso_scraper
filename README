@@ -1,4 +1,4 @@
-Scrape the Multnomah County Sherriff's Office booking website.
+Scrape the Multnomah County Sheriff's Office booking website.
 
 requirements:
 
@@ -16,8 +16,11 @@ crawl:
     scrapy crawl mcso
 
 view:
-
+    
+    start server:
     cd view && python server.py
+    view:
+    visit localhost:5000/ in web browser
 
 curl original:
 
