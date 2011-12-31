@@ -28,15 +28,36 @@ class McsoPipeline(object):
         cursor = self.conn.cursor()
         # XXX find mugshot_id
         mugshot_id = 'XXX'
+        # XXX Q&D insert into/replace into, we really want to just REPLACE INTO
+        #     this breaks created_on/updated_on
+        try:
+            # remove any existing bookings, cases, charges for booking
+            # XXX ormy helper stuff should be in a model
+            ((booking_id,),) = cursor.execute(
+                'SELECT rowid FROM bookings WHERE swisid=?', (item['swisid'],))
+        except Exception as exc:
+            pass                # none existing
+        else:
+            cursor.execute(
+                'DELETE FROM charges '
+                'WHERE case_id IN '
+                '(SELECT rowid FROM cases WHERE booking_id=?)', (booking_id,))
+            cursor.execute(
+                'DELETE FROM cases WHERE booking_id=?', (booking_id,))
+            cursor.execute(
+                'DELETE FROM bookings WHERE rowid=?', (booking_id,))
+        # create/replace new booking
         cursor.execute(
             'INSERT INTO bookings '
-            'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '
+            'DATETIME("now"), DATETIME("now"))',
             (mugshot_id, item['url'], item['swisid'], item['name'], item['age'],
              item['gender'], item['race'], item['height'], item['weight'],
              item['hair'], item['eyes'], item['arrestingagency'],
              item['arrestdate'], item['bookingdate'], item['currentstatus'],
              item['assignedfac'], item['projreldate']))
         booking_id = cursor.lastrowid
+        # add or re-add new cases, charges
         for case in item['cases']:
             cursor.execute(
                 'INSERT INTO cases VALUES (?, ?, ?, ?)',

@@ -68,7 +68,7 @@ class McsoSpider(BaseSpider):
    def parse_inmates(self, response):
        """ Parse the response to our POST to get the inmates page."""
        # XXX report on number of inmates found so we can verify scrapingness
-       hxs = HtmlXPathSelector(response)       
+       hxs = HtmlXPathSelector(response)
        inmate_urls = hxs.select(
            '//a[contains(@href, "BookingDetail.aspx")]/@href').extract()
        return [

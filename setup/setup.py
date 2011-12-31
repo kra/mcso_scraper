@@ -35,10 +35,10 @@ def update(conn):
         'CREATE TABLE cases '
         '(booking_id INTEGER, '
         'court_case_number TEXT, da_case_number TEXT, citation_number TEXT)')
-    # might want download_date?
+    # XXX assume swisid is unique
     conn.execute(
         'CREATE TABLE bookings '
-        '(mugshot_id TEXT, url TEXT, swisid TEXT, name TEXT, age TEXT, '
+        '(mugshot_id TEXT, url TEXT, swisid TEXT UNIQUE, name TEXT, age TEXT, '
         'gender TEXT, race TEXT, height TEXT, weight TEXT, hair TEXT, '
         'eyes TEXT, arrestingagency TEXT, arrestdate TEXT, bookingdate TEXT, '
         'currentstatus TEXT, assignedfac TEXT, projreldate TEXT, '
