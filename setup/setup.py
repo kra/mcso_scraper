@@ -42,7 +42,7 @@ def update(conn):
         'gender TEXT, race TEXT, height TEXT, weight TEXT, hair TEXT, '
         'eyes TEXT, arrestingagency TEXT, arrestdate TEXT, bookingdate TEXT, '
         'currentstatus TEXT, assignedfac TEXT, projreldate TEXT, '
-        'created_on TEXT, updated_on TEXT)')
+        'updated_on TEXT default CURRENT_TIMESTAMP)')
 
     # update config table to reflect current schema version
     conn.execute('UPDATE config SET value=1 WHERE name="schema"')

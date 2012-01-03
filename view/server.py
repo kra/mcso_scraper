@@ -102,11 +102,11 @@ def index():
     day_1 = datetime.datetime.utcnow() - datetime.timedelta(days=1)
     day_7 = datetime.datetime.utcnow() - datetime.timedelta(days=7)
     (bookings_1_count,) = rows(g.db.execute(
-        'SELECT COUNT(rowid) FROM bookings WHERE created_on>?',
+        'SELECT COUNT(rowid) FROM bookings WHERE updated_on>?',
         (day_1.strftime('%Y-%m-%d %H:%M:%S'),)))
     bookings_1_count = bookings_1_count['COUNT(rowid)']
     (bookings_7_count,) = rows(g.db.execute(
-        'SELECT COUNT(rowid) FROM bookings WHERE created_on>?',
+        'SELECT COUNT(rowid) FROM bookings WHERE updated_on>?',
         (day_7.strftime('%Y-%m-%d %H:%M:%S'),)))
     bookings_7_count = bookings_7_count['COUNT(rowid)']
 
