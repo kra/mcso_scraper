@@ -6,10 +6,12 @@ import datetime
 app = Flask(__name__)
 
 # must match mcso/settings.py
-DATABASE = '../data/db'
+DATA_DIRNAME = '../data'
+SQLITE_FILENAME = '/'.join([DATA_DIRNAME, 'db'])
+MUGSHOT_DIRNAME = '/'.join([DATA_DIRNAME, 'mugshots'])
 
 def connect_db():
-    conn = sqlite3.connect(DATABASE)
+    conn = sqlite3.connect(SQLITE_FILENAME)
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -51,6 +53,8 @@ def data_booking(swisid):
     #     this will raise if we get a dup
     (booking_row,) = rows(g.db.execute(
         'SELECT rowid, * FROM bookings WHERE swisid=?', [swisid]))
+    # XXX should be a model for this kind of thing
+    #booking_row['mugshot_url'] = booking_row['siw
     case_rows = rows(g.db.execute(
             'SELECT rowid, * FROM cases WHERE booking_id=?',
             [booking_row['rowid']]))
@@ -66,6 +70,12 @@ def data_booking(swisid):
 @app.route('/booking')
 def booking():
     return render_template('booking.html')
+
+@app.route('/data/mugshots/<mugshotid>')
+def booking_mugshot(mugshotid):
+    # use send_file or send_from_directory
+    # http://stackoverflow.com/questions/4239825/static-files-in-flask-robot-txt-sitemap-xml-mod-wsgi
+    return None
 
 # XXX we get the entire set each call and let the datatable filter/sort it;
 #     switch to server-side to make this more efficient.

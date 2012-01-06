@@ -1,11 +1,12 @@
 $(document).ready(function() {
 
-    function mugshot_img(obj_url) {
+    function mugshot_img(obj) {
         // return mugshot img tag for obj
-        var filename = obj_url.split('/').pop();
-        filename = filename.split('?')[1]
-        filename = filename.split('&')[0]
-        return '<img src="' + '../data/' + filename + '"/>';
+        //var filename = obj_url.split('/').pop();
+        //filename = filename.split('?')[1]
+        //filename = filename.split('&')[0]
+        filename = obj['swisid']
+        return '<img src="' + '../data/mugshots/' + filename + '"/>';
         //return filename;
     }
 
@@ -28,6 +29,9 @@ $(document).ready(function() {
     function obj_to_dlist(booking_obj) {
         // return a string of <dt><dd> elements from the given object
         var items = [];
+        items.push(
+            '<dt>' + 'mugshot' + '</dt><dd>' + 
+            mugshot_img(booking_obj) + '</dd>');
         $.each(booking_obj, function(key, val) {
             // munge attributees
             if (key == 'url') {

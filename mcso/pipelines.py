@@ -25,17 +25,16 @@ class McsoPipeline(object):
         return sqlite3.connect(sql_filename)
 
     def process_item(self, item, spider):
+        self.write_mugshot(item)
         cursor = self.conn.cursor()
-        # XXX find mugshot_id
-        mugshot_id = 'XXX'
         # create/replace new booking
         cursor.execute(
             'REPLACE INTO bookings '
-            '(mugshot_id, url, swisid, name, age, gender, race, '
+            '(url, swisid, name, age, gender, race, '
             'height, weight, hair, eyes, arrestingagency, '
             'arrestdate, bookingdate, currentstatus, assignedfac, projreldate) '
-            'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-            (mugshot_id, item['url'], item['swisid'], item['name'], item['age'],
+            'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            (item['url'], item['swisid'], item['name'], item['age'],
              item['gender'], item['race'], item['height'], item['weight'],
              item['hair'], item['eyes'], item['arrestingagency'],
              item['arrestdate'], item['bookingdate'], item['currentstatus'],
@@ -66,3 +65,26 @@ class McsoPipeline(object):
                      charge['status']))
         self.conn.commit()
         return item
+
+    # XXX there is probably an async pipeline helper
+    def write_mugshot(self, item):
+        """ write mugshot to file and return it's ID """
+        # XXX assume swisid is unique
+        mugshot_id = item['swisid']
+        mugshot_filename = '/'.join(
+            (os.path.dirname(os.path.abspath(__file__)),
+             settings['MUGSHOT_DIRNAME'],
+             mugshot_id))
+        mugshot_file = open(mugshot_filename, 'wb')
+        item['mugshot'].seek(0)
+
+        while True:
+            buf = item['mugshot'].read(65536)
+            if len(buf) == 0:
+                break
+            mugshot_file.write(buf)
+        mugshot_file.close()
+
+        return mugshot_id
+
+

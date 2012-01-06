@@ -8,13 +8,19 @@ import os
 
 # must match msco/settings.py
 
-SQLITE_FILENAME = '../data/db'
+DATA_DIRNAME = '../data'
+SQLITE_FILENAME = '/'.join([DATA_DIRNAME, 'db'])
+MUGSHOT_DIRNAME = '/'.join([DATA_DIRNAME, 'mugshots'])
 
 def get_conn():
-    # assume / pathsep
     sql_filename = '/'.join(
         (os.path.dirname(os.path.abspath(__file__)), SQLITE_FILENAME))
     return sqlite3.connect(sql_filename)
+
+def setup_fs():
+    mugshot_dirname = '/'.join(
+        (os.path.dirname(os.path.abspath(__file__)), MUGSHOT_DIRNAME))
+    os.makedirs(mugshot_dirname)
 
 def update(conn):
     """
@@ -49,4 +55,5 @@ def update(conn):
 
 if __name__ == '__main__':
     conn = get_conn()
+    setup_fs()
     update(conn)
