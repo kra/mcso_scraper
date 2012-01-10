@@ -5,6 +5,7 @@ To be run once, will need a schema version and migrations at some point.
 
 import sqlite3
 import os
+import string
 
 # must match msco/settings.py
 
@@ -20,7 +21,11 @@ def get_conn():
 def setup_fs():
     mugshot_dirname = '/'.join(
         (os.path.dirname(os.path.abspath(__file__)), MUGSHOT_DIRNAME))
-    os.makedirs(mugshot_dirname)
+    # partition by swisid, which is all digits, variable length,
+    # so make 2 partitions for now, each 1 char prefix
+    for dirname1 in string.digits:
+        for dirname2 in string.digits:
+            os.makedirs('/'.join((mugshot_dirname, dirname1, dirname2)))
 
 def update(conn):
     """
@@ -54,6 +59,6 @@ def update(conn):
     conn.execute('UPDATE config SET value=1 WHERE name="schema"')
 
 if __name__ == '__main__':
-    conn = get_conn()
     setup_fs()
+    conn = get_conn()
     update(conn)

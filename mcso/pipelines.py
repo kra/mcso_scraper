@@ -70,11 +70,15 @@ class McsoPipeline(object):
     def write_mugshot(self, item):
         """ write mugshot to file and return it's ID """
         # XXX assume swisid is unique
+        # XXX this should be on a model
         mugshot_id = item['swisid']
-        mugshot_filename = '/'.join(
+        # mugshot files are partitioned by 2 1-char prefix subdirs
+        mugshot_dir = '/'.join(
             (os.path.dirname(os.path.abspath(__file__)),
              settings['MUGSHOT_DIRNAME'],
-             mugshot_id))
+             mugshot_id[0],
+             mugshot_id[1]))
+        mugshot_filename = '/'.join((mugshot_dir, mugshot_id))
         mugshot_file = open(mugshot_filename, 'wb')
         item['mugshot'].seek(0)
 
@@ -86,5 +90,3 @@ class McsoPipeline(object):
         mugshot_file.close()
 
         return mugshot_id
-
-

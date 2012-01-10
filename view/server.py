@@ -1,4 +1,4 @@
-from flask import Flask, g, render_template
+from flask import Flask, g, render_template, helpers
 import sqlite3
 import json
 import datetime
@@ -71,11 +71,12 @@ def data_booking(swisid):
 def booking():
     return render_template('booking.html')
 
+# XXX ideally static files are served by a server in front of us
 @app.route('/data/mugshots/<mugshotid>')
 def booking_mugshot(mugshotid):
-    # use send_file or send_from_directory
-    # http://stackoverflow.com/questions/4239825/static-files-in-flask-robot-txt-sitemap-xml-mod-wsgi
-    return None
+    # XXX this should be in a model
+    dirname = '/'.join((MUGSHOT_DIRNAME, mugshotid[0], mugshotid[1]))
+    return helpers.send_from_directory(dirname, mugshotid)
 
 # XXX we get the entire set each call and let the datatable filter/sort it;
 #     switch to server-side to make this more efficient.
