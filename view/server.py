@@ -84,7 +84,8 @@ def booking_mugshot(mugshotid):
 def data_booking_index():
     return json.dumps(booking_index_rows(g.db.execute(
         'SELECT '
-        'rowid, name, age, swisid, race, gender, arrestdate, arrestingagency '
+        'rowid, name, age, swisid, race, gender, arrestdate, bookingdate, '
+        'assignedfac, arrestingagency, currentstatus '
         'FROM bookings')))
 
 # XXX we get the entire set each call and let the datatable filter/sort it;
