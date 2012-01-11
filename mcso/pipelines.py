@@ -32,13 +32,15 @@ class McsoPipeline(object):
             'REPLACE INTO bookings '
             '(url, swisid, name, age, gender, race, '
             'height, weight, hair, eyes, arrestingagency, '
-            'arrestdate, bookingdate, currentstatus, assignedfac, projreldate) '
-            'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-            (item['url'], item['swisid'], item['name'], item['age'],
-             item['gender'], item['race'], item['height'], item['weight'],
-             item['hair'], item['eyes'], item['arrestingagency'],
-             item['arrestdate'], item['bookingdate'], item['currentstatus'],
-             item['assignedfac'], item['projreldate']))
+            'arrestdate, bookingdate, currentstatus, assignedfac, '
+            'projreldate, releasedate, releasereason) '
+            'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            (item.get('url'), item.get('swisid'), item.get('name'), item.get('age'),
+             item.get('gender'), item.get('race'), item.get('height'), item.get('weight'),
+             item.get('hair'), item.get('eyes'), item.get('arrestingagency'),
+             item.get('arrestdate'), item.get('bookingdate'), item.get('currentstatus'),
+             item.get('assignedfac'), item.get('projreldate'),
+             item.get('releasedate'), item.get('releasereason')))
         ((booking_id,),) = cursor.execute(
             'SELECT rowid FROM bookings WHERE swisid=?', (item['swisid'],))
         # delete any existing associated rows
@@ -49,20 +51,20 @@ class McsoPipeline(object):
         cursor.execute(
             'DELETE FROM cases WHERE booking_id=?', (booking_id,))
         # add or re-add new cases, charges
-        for case in item['cases']:
+        for case in item.get('cases'):
             cursor.execute(
                 'INSERT INTO cases VALUES (?, ?, ?, ?)',
                 (booking_id,
-                 case['court_case_number'],
-                 case['da_case_number'],
-                 case['citation_number']))
+                 case.get('court_case_number'),
+                 case.get('da_case_number'),
+                 case.get('citation_number')))
             case_id = cursor.lastrowid
-            for charge in case['charges']:
+            for charge in case.get('charges', []):
                 cursor.execute(
                     'INSERT INTO charges VALUES (?, ?, ?, ?)',
-                    (case_id, charge['charge'],
-                     charge['bail'],
-                     charge['status']))
+                    (case_id, charge.get('charge'),
+                     charge.get('bail'),
+                     charge.get('status')))
         self.conn.commit()
         return item
 

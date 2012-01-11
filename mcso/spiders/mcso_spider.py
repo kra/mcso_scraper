@@ -53,7 +53,6 @@ class McsoSpider(BaseSpider):
 
     def absolute_url(self, response, url):
         """ Return an absolute url for given relative url and response """
-        # sigh, not a named tuple
         (scheme, netloc, path, params, _, _) = urlparse.urlparse(response.url)
         # lop off end of current path, add url
         path = '/'.join(path.split('/')[:-1])
@@ -62,22 +61,20 @@ class McsoSpider(BaseSpider):
 
     def parse(self, response):
         """ Parse the response to our start urls. """
-        # XXX we probably want to select 'last 7 days' or something
-        # XXX select yesterday's bookings, very recent bookings are not always
-        #     complete
+        # XXX we may want to select 'last 7 days' or something
         return [
             FormRequest.from_response(response, callback=self.parse_inmates)]
 
     def parse_inmates(self, response):
         """ Parse the response to our POST to get the inmates page."""
-        # XXX report on number of inmates found so we can verify scrapingness
+        # XXX report on number of bookings found so we can verify scrapingness
         hxs = HtmlXPathSelector(response)
         inmate_urls = hxs.select(
             '//a[contains(@href, "BookingDetail.aspx")]/@href').extract()
         return [
             Request(self.absolute_url(response, inmate_url),
                     callback=self.parse_inmate)
-            for inmate_url in inmate_urls][0:5]
+            for inmate_url in inmate_urls]
 
     def parse_inmate(self, response):
         """ Parse the response to our GET of an inmate page. """

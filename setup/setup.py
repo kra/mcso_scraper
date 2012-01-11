@@ -53,6 +53,7 @@ def update(conn):
         'gender TEXT, race TEXT, height TEXT, weight TEXT, hair TEXT, '
         'eyes TEXT, arrestingagency TEXT, arrestdate TEXT, bookingdate TEXT, '
         'currentstatus TEXT, assignedfac TEXT, projreldate TEXT, '
+        'releasedate TEXT, releasereason TEXT, '
         'updated_on TEXT default CURRENT_TIMESTAMP)')
 
     # update config table to reflect current schema version
