@@ -10,7 +10,6 @@ import logging
 
 
 class InmateItem(Item):
-    # XXX also fields for release date, release reason
     url = Field()
     mugshot = Field()
     swisid = Field()
@@ -29,19 +28,20 @@ class InmateItem(Item):
     assignedfac = Field()
     projreldate = Field()
     cases = Field()
+    releasedate = Field()
+    releasereason = Field()
+
+class CaseItem(Item):
+    court_case_number = Field()
+    da_case_number = Field()
+    citation_number = Field()
+    charges = Field()
 
 
-# class CaseItem(Item):
-#     court_case_number = Field()
-#     da_case_number = Field()
-#     citation_number = Field()
-#     charges = Field()
-
-
-# class ChargeItem(Item):
-#    charge = Field()
-#    bail = Field()
-#    status = Field()   
+class ChargeItem(Item):
+   charge = Field()
+   bail = Field()
+   status = Field()
 
 
 class McsoSpider(BaseSpider):
@@ -77,7 +77,7 @@ class McsoSpider(BaseSpider):
         return [
             Request(self.absolute_url(response, inmate_url),
                     callback=self.parse_inmate)
-            for inmate_url in inmate_urls]
+            for inmate_url in inmate_urls][0:5]
 
     def parse_inmate(self, response):
         """ Parse the response to our GET of an inmate page. """
@@ -115,8 +115,8 @@ class McsoSpider(BaseSpider):
         case_table = etree.fromstring(case_table.extract())
         # cases are tables in tds of case table
         for case in case_table.xpath('/table/tr/td/table'):
-           case_item = dict()            # XXX can't serialize nested items
-           (court_case_number, da_case_number, citation_number) = [           
+           case_item = CaseItem()
+           (court_case_number, da_case_number, citation_number) = [
               elt.xpath('text()')[0]
               for elt in case.xpath(
                   './/span[contains(@id, "ctl00_MainContent_CaseDataList")]')
@@ -128,7 +128,7 @@ class McsoSpider(BaseSpider):
            for charge_row in [
               row for row in case.xpath(
                   './/tr[@class="GridItem"]|.//tr[@class="GridAltItem"]')]:
-              charge_item = dict()       # XXX can't serialize nested items
+              charge_item = ChargeItem()
               (charge, bail, status) = [
                  elt.xpath('text()')[0] for elt in charge_row.xpath('td')]
               charge_item['charge'] = charge
