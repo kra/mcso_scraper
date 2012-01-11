@@ -26,14 +26,12 @@ $(document).ready(function() {
         return '<dl>' + items.join('') + '</dl>';
     }
 
-    function obj_to_dlist(booking_obj) {
+    function obj_to_dlist(obj) {
         // return a string of <dt><dd> elements from the given object
         var items = [];
-        items.push(
-            '<dt>' + 'mugshot' + '</dt><dd>' + 
-            mugshot_img(booking_obj) + '</dd>');
-        $.each(booking_obj, function(key, val) {
-            // munge attributees
+        items.push(['mugshot', mugshot_img(obj)]);
+        $.each(obj, function(key, val) {
+            // munge attributes
             if (key == 'url') {
                 val = orig_url(val);
             }
@@ -48,10 +46,16 @@ $(document).ready(function() {
                 }
                 val = array_to_dlist(val, name);
             }
-            items.push('<dt>' + key + '</dt><dd>' + val + '</dd>');
+            items.push([key, val]);
+        });
+        var items_out = [];
+        $.each(items, function(index, tup) {
+            var key = tup[0];
+            var val = tup[1];
+            items_out.push('<dt>' + key + '</dt><dd>' + val + '</dd>');
         });
         
-        return items.join('');
+        return items_out.join('');
     }
 
     function url_param(name) {
