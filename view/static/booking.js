@@ -2,12 +2,8 @@ $(document).ready(function() {
 
     function mugshot_img(obj) {
         // return mugshot img tag for obj
-        //var filename = obj_url.split('/').pop();
-        //filename = filename.split('?')[1]
-        //filename = filename.split('&')[0]
         filename = obj['swisid']
         return '<img src="' + '../data/mugshots/' + filename + '"/>';
-        //return filename;
     }
 
     function orig_url(obj_url) {
@@ -22,40 +18,31 @@ $(document).ready(function() {
             items.push('<dt>' + name + '</dt><dd><dl>' + 
                        obj_to_dlist(val) + '</dl></dd>');
         });
-        
         return '<dl>' + items.join('') + '</dl>';
+    }
+
+    function munge_booking_obj(obj) {
+        // munge obj XXX destructively
+        obj['mugshot'] = mugshot_img(obj);
+        obj['url'] = orig_url(obj['url']);
+        $.each(obj['cases'], function(index, case_obj) {
+            case_obj['charges'] = array_to_dlist(case_obj['charges'], 'charge');
+        });
+        obj['cases'] = array_to_dlist(obj['cases'], 'case');
+        return obj;
+    }
+
+    function booking_to_dlist(obj) {
+        return obj_to_dlist(munge_booking_obj(obj));
     }
 
     function obj_to_dlist(obj) {
         // return a string of <dt><dd> elements from the given object
         var items = [];
-        items.push(['mugshot', mugshot_img(obj)]);
         $.each(obj, function(key, val) {
-            // munge attributes
-            if (key == 'url') {
-                val = orig_url(val);
-            }
-            else if (key == 'mugshot_url') {
-                val = mugshot_img(val);
-            }
-            if ((key == 'cases') || (key == 'charges')) {
-                if (key == 'cases') {
-                    var name = 'case';
-                } else if (key == 'charges') {
-                    var name = 'charge';
-                }
-                val = array_to_dlist(val, name);
-            }
-            items.push([key, val]);
+            items.push('<dt>' + key + '</dt><dd>' + val + '</dd>');
         });
-        var items_out = [];
-        $.each(items, function(index, tup) {
-            var key = tup[0];
-            var val = tup[1];
-            items_out.push('<dt>' + key + '</dt><dd>' + val + '</dd>');
-        });
-        
-        return items_out.join('');
+        return items.join('');
     }
 
     function url_param(name) {
@@ -69,7 +56,7 @@ $(document).ready(function() {
     // write HTML from the indicated booking data to document body
     var json_href = '/data/booking/' + url_param('booking');
     $.getJSON(json_href, function(data) {
-        var items = obj_to_dlist(data);
+        var items = booking_to_dlist(data);
         $('<dl/>', {
             'class': 'booking-list',
             'html': items
