@@ -46,16 +46,14 @@ $(document).ready(function() {
                 } else if (key == 'charges') {
                     var name = 'charge';
                 }
-                items.push('<dt>' + key + '</dt><dd>' + 
-                           array_to_dlist(val, name) + '</dd>');
-            } else {
-                items.push('<dt>' + key + '</dt><dd>' + val + '</dd>');
+                val = array_to_dlist(val, name);
             }
+            items.push('<dt>' + key + '</dt><dd>' + val + '</dd>');
         });
         
         return items.join('');
     }
-    
+
     function url_param(name) {
         // return the named query paramater from the current url
         var results = new RegExp(
