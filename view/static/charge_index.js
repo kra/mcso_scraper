@@ -5,7 +5,8 @@ $(document).ready(function() {
         var index_arrays = [];
         index_objs.map(function (obj) {
             index_arrays.push(
-                [obj.charge_link, obj.status, obj.bail]);
+                [obj.charge_link, obj.status, obj.bail,
+                 obj.arrestdate, obj.bookingdate]);
         });
             
         $('#charge_table').dataTable({
@@ -13,7 +14,9 @@ $(document).ready(function() {
             "aoColumns": [
                 { "sTitle": "charge" },
                 { "sTitle": "status" },
-                { "sTitle": "bail" }],
+                { "sTitle": "bail" },
+                { "sTitle": "arrestdate" },
+                { "sTitle": "bookingdate" }]
         });
     });
     

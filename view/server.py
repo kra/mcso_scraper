@@ -93,7 +93,8 @@ def data_booking_index():
 @app.route('/data/charge_index')
 def data_charge_index():
     return json.dumps(charge_index_rows(g.db.execute(
-        'SELECT bookings.swisid, charges.charge, charges.bail, charges.status '
+        'SELECT bookings.swisid, bookings.arrestdate, bookings.bookingdate, '
+        'charges.charge, charges.bail, charges.status '
         'FROM charges '
         'JOIN cases ON charges.case_id = cases.rowid '
         'JOIN bookings ON cases.booking_id = bookings.rowid')))
