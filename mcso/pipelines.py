@@ -32,15 +32,30 @@ class McsoPipeline(object):
             'REPLACE INTO bookings '
             '(url, swisid, name, age, gender, race, '
             'height, weight, hair, eyes, arrestingagency, '
-            'arrestdate, bookingdate, currentstatus, assignedfac, '
-            'projreldate, releasedate, releasereason) '
-            'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-            (item.get('url'), item.get('swisid'), item.get('name'), item.get('age'),
-             item.get('gender'), item.get('race'), item.get('height'), item.get('weight'),
+            'arrestdate, parsed_arrestdate, '
+            'bookingdate, parsed_bookingdate, currentstatus, assignedfac, '
+            'projreldate, parsed_projreldate, releasedate, parsed_releasedate, '
+            'releasereason, mugshot_url) '
+            'VALUES '
+            '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '
+            '?, ?, ?, ?, ?)',
+            (item.get('url'), item.get('swisid'), item.get('name'),
+             item.get('age'),
+             item.get('gender'), item.get('race'), item.get('height'),
+             item.get('weight'),
              item.get('hair'), item.get('eyes'), item.get('arrestingagency'),
-             item.get('arrestdate'), item.get('bookingdate'), item.get('currentstatus'),
-             item.get('assignedfac'), item.get('projreldate'),
-             item.get('releasedate'), item.get('releasereason')))
+             item.get('arrestdate'),
+             item.parsed_date(item.get('arrestdate')),
+             item.get('bookingdate'),
+             item.parsed_date(item.get('bookingdate')),
+             item.get('currentstatus'),
+             item.get('assignedfac'),
+             item.get('projreldate'),
+             item.parsed_date(item.get('projreldate')),
+             item.get('releasedate'),
+             item.parsed_date(item.get('releasedate')),
+             item.get('releasereason'),
+             item.get('mugshot_url')))
         ((booking_id,),) = cursor.execute(
             'SELECT rowid FROM bookings WHERE swisid=?', (item['swisid'],))
         # delete any existing associated rows

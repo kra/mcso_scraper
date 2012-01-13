@@ -12,6 +12,7 @@ import logging
 class InmateItem(Item):
     url = Field()
     mugshot = Field()
+    mugshot_url = Field()
     swisid = Field()
     name = Field()
     age = Field()
@@ -23,13 +24,43 @@ class InmateItem(Item):
     eyes = Field()
     arrestingagency = Field()
     arrestdate = Field()
+    #parsed_arrestdate = Field()
     bookingdate = Field()
+    #parsed_bookingdate = Field()
     currentstatus = Field()
     assignedfac = Field()
     projreldate = Field()
+    #parsed_reldate = Field()
     cases = Field()
     releasedate = Field()
+    #parsed_releasedate = Field()
     releasereason = Field()
+
+    #XXX properties
+    def parsed_date(self, field):
+        """
+        Return a sortable date string from the given string in the format
+        used by mcso.
+        """
+        if field is None or field == 'Unknown':
+            return None
+        # 11/13/2011 12:29 AM -> 2012-01-11 07:14:11
+        try:
+            field = field.strip()
+            (date, time) = field.split(None, 1)
+            (month, day, year) = date.split('/')
+            month = int(month)
+            day = int(day)
+            (time, ampm) = time.split()
+            (hour, min) = time.split(':')
+            hour = int(hour)
+            min = int(min)
+            if ampm == 'PM':
+                hour += 12
+            return '%s-%02d-%02d %02d:%02d:00' % (year, month, day, hour, min)
+        except Exception as exc:
+            logging.warning('could not split date %s: %s' % (field, exc))
+            return None
 
 class CaseItem(Item):
     court_case_number = Field()
@@ -84,6 +115,7 @@ class McsoSpider(BaseSpider):
 
         mugshot_url = self.absolute_url(response, hxs.select(
             '//img[@id="ctl00_MainContent_mugShotImage"]/@src')[0].extract())
+        inmate_item['mugshot_url'] = mugshot_url
         inmate_item['mugshot'] = self.download_image(mugshot_url)
 
         for field in hxs.select(

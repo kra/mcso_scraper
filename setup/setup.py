@@ -49,11 +49,13 @@ def update(conn):
     # XXX assume swisid is unique
     conn.execute(
         'CREATE TABLE bookings '
-        '(mugshot_id TEXT, url TEXT, swisid TEXT UNIQUE, name TEXT, age TEXT, '
+        '(mugshot_url TEXT, url TEXT, swisid TEXT UNIQUE, name TEXT, age TEXT, '
         'gender TEXT, race TEXT, height TEXT, weight TEXT, hair TEXT, '
         'eyes TEXT, arrestingagency TEXT, arrestdate TEXT, bookingdate TEXT, '
         'currentstatus TEXT, assignedfac TEXT, projreldate TEXT, '
         'releasedate TEXT, releasereason TEXT, '
+        'parsed_arrestdate TEXT, parsed_bookingdate TEXT, '
+        'parsed_projreldate TEXT, parsed_releasedate TEXT, '
         'updated_on TEXT default CURRENT_TIMESTAMP)')
 
     # update config table to reflect current schema version

@@ -6,7 +6,8 @@ $(document).ready(function() {
         index_objs.map(function (obj) {
             index_arrays.push(
                 [obj.name_link, obj.age, obj.swisid, obj.race,
-                 obj.gender, obj.arrestdate, obj.bookingdate, obj.assignedfac,
+                 obj.gender, obj.parsed_arrestdate, 
+                 obj.parsed_bookingdate, obj.assignedfac,
                  obj.arrestingagency, obj.currentstatus]);
         });
             
@@ -18,8 +19,8 @@ $(document).ready(function() {
                 { "sTitle": "swisid" },
                 { "sTitle": "race" },
                 { "sTitle": "gender" },
-                { "sTitle": "arrestdate" },
-                { "sTitle": "bookingdate" },
+                { "sTitle": "parsed_arrestdate" },
+                { "sTitle": "parsed_bookingdate" },
                 { "sTitle": "assignedfac" },
                 { "sTitle": "arrestingagency" },
                 { "sTitle": "currentstatus" }],
