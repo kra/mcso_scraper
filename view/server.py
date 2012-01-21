@@ -2,6 +2,9 @@ from flask import Flask, g, render_template, helpers
 import sqlite3
 import json
 import datetime
+import urllib
+
+import mcso.spiders.mcso_spider
 
 app = Flask(__name__)
 
@@ -31,30 +34,34 @@ def rows(cur):
 
 def booking_index_rows(cur):
     index_rows = rows(cur)
-    # XXX should do this in the view, or maybe a model
+    # XXX should do this in the view, or maybe InmateItem
     for row in index_rows:
         row['name_link'] = (
-            "<a href='/booking?booking=" + row['swisid'] + "'>" +
+            "<a href='/booking?booking=" + str(row['rowid']) + "'>" +
             row['name'] + '</a>')
     return index_rows
 
 def charge_index_rows(cur):
     index_rows = rows(cur)
-    # XXX should do this in the view, or maybe a model
+    # XXX should do this in the view, or maybe InmateItem
     for row in index_rows:
+        # XXX should use InmateItem
         row['charge_link'] = (
-            "<a href='/booking?booking=" + str(row["swisid"]) + "'>" +
+            "<a href='/booking?booking=" + str(row['rowid']) + "'>" +
             row['charge'] + '</a>')
     return index_rows
 
-@app.route('/data/booking/<swisid>')
-def data_booking(swisid):
-    # XXX not sure swisid is unique, it could be per inmate or otherwise reused,
-    #     this will raise if we get a dup
+@app.route('/data/booking/<bookingid>')
+def data_booking(bookingid):
+    # bookingid = urllib.unquote(bookingid)
     (booking_row,) = rows(g.db.execute(
-        'SELECT rowid, * FROM bookings WHERE swisid=?', [swisid]))
+        'SELECT rowid, * FROM bookings WHERE rowid=?', (bookingid,)))
+    # XXX should use InmateItem for this
+    # booking_row['mugshot_filename'] = (
+    #     mcso.spiders.mcso_spider.booking_mugshot_path(
+    #         booking_row['rowid']))
+    booking_row['mugshot_path'] = booking_row['rowid']
     # XXX should be a model for this kind of thing
-    #booking_row['mugshot_url'] = booking_row['siw
     case_rows = rows(g.db.execute(
             'SELECT rowid, * FROM cases WHERE booking_id=?',
             [booking_row['rowid']]))
@@ -74,9 +81,9 @@ def booking():
 # XXX ideally static files are served by a server in front of us
 @app.route('/data/mugshots/<mugshotid>')
 def booking_mugshot(mugshotid):
-    # XXX this should be in a model
-    dirname = '/'.join((MUGSHOT_DIRNAME, mugshotid[0], mugshotid[1]))
-    return helpers.send_from_directory(dirname, mugshotid)
+    path = mcso.spiders.mcso_spider.booking_mugshot_dir(mugshotid)
+    path = '/'.join((MUGSHOT_DIRNAME, path))
+    return helpers.send_from_directory(path, mugshotid)
 
 # XXX we get the entire set each call and let the datatable filter/sort it;
 #     switch to server-side to make this more efficient.
@@ -85,7 +92,7 @@ def data_booking_index():
     return json.dumps(booking_index_rows(g.db.execute(
         'SELECT '
         'rowid, name, age, swisid, race, gender, parsed_arrestdate, '
-        'parsed_bookingdate, '
+        'bookingdate, parsed_bookingdate, '
         'assignedfac, arrestingagency, currentstatus '
         'FROM bookings')))
 
@@ -94,7 +101,8 @@ def data_booking_index():
 @app.route('/data/charge_index')
 def data_charge_index():
     return json.dumps(charge_index_rows(g.db.execute(
-        'SELECT bookings.swisid, bookings.arrestdate, bookings.bookingdate, '
+        'SELECT bookings.rowid, bookings.swisid, '
+        'bookings.arrestdate, bookings.bookingdate, '
         'charges.charge, charges.bail, charges.status '
         'FROM charges '
         'JOIN cases ON charges.case_id = cases.rowid '

@@ -25,7 +25,6 @@ class McsoPipeline(object):
         return sqlite3.connect(sql_filename)
 
     def process_item(self, item, spider):
-        self.write_mugshot(item)
         cursor = self.conn.cursor()
         # create/replace new booking
         cursor.execute(
@@ -56,8 +55,10 @@ class McsoPipeline(object):
              item.parsed_date(item.get('releasedate')),
              item.get('releasereason'),
              item.get('mugshot_url')))
+        # primary key is swisid + bookingdate
         ((booking_id,),) = cursor.execute(
-            'SELECT rowid FROM bookings WHERE swisid=?', (item['swisid'],))
+            'SELECT rowid FROM bookings WHERE swisid=? AND bookingdate=?',
+            (item['swisid'], item['bookingdate']))
         # delete any existing associated rows
         cursor.execute(
             'DELETE FROM charges '
@@ -81,21 +82,17 @@ class McsoPipeline(object):
                      charge.get('bail'),
                      charge.get('status')))
         self.conn.commit()
+        item['booking_id'] = booking_id
+        self.write_mugshot(item)
         return item
 
     # XXX there is probably an async pipeline helper
     def write_mugshot(self, item):
         """ write mugshot to file and return it's ID """
-        # XXX assume swisid is unique
-        # XXX this should be on a model
-        mugshot_id = item['swisid']
-        # mugshot files are partitioned by 2 1-char prefix subdirs
-        mugshot_dir = '/'.join(
+        mugshot_filename = '/'.join(
             (os.path.dirname(os.path.abspath(__file__)),
              settings['MUGSHOT_DIRNAME'],
-             mugshot_id[0],
-             mugshot_id[1]))
-        mugshot_filename = '/'.join((mugshot_dir, mugshot_id))
+             item.mugshot_path()))
         mugshot_file = open(mugshot_filename, 'wb')
         item['mugshot'].seek(0)
 
@@ -105,5 +102,3 @@ class McsoPipeline(object):
                 break
             mugshot_file.write(buf)
         mugshot_file.close()
-
-        return mugshot_id

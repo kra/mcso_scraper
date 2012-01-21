@@ -8,6 +8,15 @@ import urllib, urlparse
 import StringIO
 import logging
 
+# XXX only split out so we don't have to instantiate an item to get it
+def booking_mugshot_dir(booking_id):
+    """ return the mugshot path for booking_id relative to the data dir """
+    booking_id = int(booking_id)
+    # mugshot files are partitioned by 2 1-char suffix subdirs
+    ones_digit = str(booking_id % 10)
+    tens_digit = str((booking_id % 100) / 10)
+    return '/'.join((ones_digit, tens_digit))
+
 
 class InmateItem(Item):
     url = Field()
@@ -35,6 +44,7 @@ class InmateItem(Item):
     releasedate = Field()
     #parsed_releasedate = Field()
     releasereason = Field()
+    booking_id = Field()
 
     #XXX properties
     def parsed_date(self, field):
@@ -61,6 +71,15 @@ class InmateItem(Item):
         except Exception as exc:
             logging.warning('could not split date %s: %s' % (field, exc))
             return None
+
+    # def booking_id(self):
+    #     return '_'.join((self['swisid'], self['bookingdate']))
+
+    def mugshot_path(self):
+        """ return my mugshot path relative to the data dir """
+        return '/'.join(
+            (booking_mugshot_dir(self['booking_id']), self['booking_id']))
+
 
 class CaseItem(Item):
     court_case_number = Field()
@@ -105,7 +124,7 @@ class McsoSpider(BaseSpider):
         return [
             Request(self.absolute_url(response, inmate_url),
                     callback=self.parse_inmate)
-            for inmate_url in inmate_urls]
+            for inmate_url in inmate_urls][0:10]# XXX testing
 
     def parse_inmate(self, response):
         """ Parse the response to our GET of an inmate page. """

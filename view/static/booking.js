@@ -2,8 +2,9 @@ $(document).ready(function() {
 
     function mugshot_img(obj) {
         // return mugshot img tag for obj
-        filename = obj['swisid']
-        return '<img src="' + '../data/mugshots/' + filename + '"/>';
+        // XXX the view layer knows this, should be there
+        path = obj['mugshot_path']
+        return '<img src="' + '../data/mugshots/' + path + '"/>';
     }
 
     function orig_url(obj_url) {

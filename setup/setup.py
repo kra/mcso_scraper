@@ -21,7 +21,8 @@ def get_conn():
 def setup_fs():
     mugshot_dirname = '/'.join(
         (os.path.dirname(os.path.abspath(__file__)), MUGSHOT_DIRNAME))
-    # partition by swisid, which is all digits, variable length,
+    # partition by prefix of booking_id, which starts with swisid,
+    # which is all digits, variable length,
     # so make 2 partitions for now, each 1 char prefix
     for dirname1 in string.digits:
         for dirname2 in string.digits:
@@ -46,17 +47,17 @@ def update(conn):
         'CREATE TABLE cases '
         '(booking_id INTEGER, '
         'court_case_number TEXT, da_case_number TEXT, citation_number TEXT)')
-    # XXX assume swisid is unique
     conn.execute(
         'CREATE TABLE bookings '
-        '(mugshot_url TEXT, url TEXT, swisid TEXT UNIQUE, name TEXT, age TEXT, '
+        '(mugshot_url TEXT, url TEXT, swisid TEXT, name TEXT, age TEXT, '
         'gender TEXT, race TEXT, height TEXT, weight TEXT, hair TEXT, '
         'eyes TEXT, arrestingagency TEXT, arrestdate TEXT, bookingdate TEXT, '
         'currentstatus TEXT, assignedfac TEXT, projreldate TEXT, '
         'releasedate TEXT, releasereason TEXT, '
         'parsed_arrestdate TEXT, parsed_bookingdate TEXT, '
         'parsed_projreldate TEXT, parsed_releasedate TEXT, '
-        'updated_on TEXT default CURRENT_TIMESTAMP)')
+        'updated_on TEXT default CURRENT_TIMESTAMP, '
+        'PRIMARY KEY (swisid, arrestdate))')
 
     # update config table to reflect current schema version
     conn.execute('UPDATE config SET value=1 WHERE name="schema"')

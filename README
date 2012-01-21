@@ -18,7 +18,11 @@ crawl:
 view:
     
     start server:
-    cd view && python server.py
+    cd view
+    # XXX or wherever it is installed
+    # XXX make a virtalenv for this stuff
+    export PYTHONPATH=/Users/karl/Library/python_misc:/Users/karl/Documents/pmha/mcso
+    python server.py
     view:
     visit localhost:5000/ in web browser
 
