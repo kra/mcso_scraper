@@ -57,28 +57,32 @@ class InmateItem(Item):
         # 11/13/2011 12:29 AM -> 2012-01-11 07:14:11
         try:
             field = field.strip()
-            (date, time) = field.split(None, 1)
+            try:
+                (date, time) = field.split(None, 1)
+            except:
+                date = field
+                hour = 0
+                min = 0
+            else:
+                (time, ampm) = time.split()
+                (hour, min) = time.split(':')
+                hour = int(hour)
+                min = int(min)
+                if ampm == 'PM':
+                    hour += 12
             (month, day, year) = date.split('/')
             month = int(month)
             day = int(day)
-            (time, ampm) = time.split()
-            (hour, min) = time.split(':')
-            hour = int(hour)
-            min = int(min)
-            if ampm == 'PM':
-                hour += 12
             return '%s-%02d-%02d %02d:%02d:00' % (year, month, day, hour, min)
         except Exception as exc:
             logging.warning('could not split date %s: %s' % (field, exc))
             return None
 
-    # def booking_id(self):
-    #     return '_'.join((self['swisid'], self['bookingdate']))
-
     def mugshot_path(self):
         """ return my mugshot path relative to the data dir """
         return '/'.join(
-            (booking_mugshot_dir(self['booking_id']), self['booking_id']))
+            (booking_mugshot_dir(str(self['booking_id'])),
+             str(self['booking_id'])))
 
 
 class CaseItem(Item):
