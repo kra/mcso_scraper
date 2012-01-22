@@ -1,14 +1,7 @@
-# Scrapy settings for mcso project
-#
-# For simplicity, this file contains only the most important settings by
-# default. All the other settings are documented here:
-#
-#     http://doc.scrapy.org/topics/settings.html
-#
-
 BOT_NAME = 'mcso'
 BOT_VERSION = '1.0'
 
+LOG_LEVEL = 'INFO'
 SPIDER_MODULES = ['mcso.spiders']
 NEWSPIDER_MODULE = 'mcso.spiders'
 DEFAULT_ITEM_CLASS = 'mcso.items.McsoItem'
