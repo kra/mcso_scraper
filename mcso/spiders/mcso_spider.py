@@ -128,7 +128,7 @@ class McsoSpider(BaseSpider):
         return [
             Request(self.absolute_url(response, inmate_url),
                     callback=self.parse_inmate)
-            for inmate_url in inmate_urls][0:10]# XXX testing
+            for inmate_url in inmate_urls]
 
     def parse_inmate(self, response):
         """ Parse the response to our GET of an inmate page. """
