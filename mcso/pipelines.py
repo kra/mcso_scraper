@@ -2,16 +2,6 @@ from scrapy.conf import settings
 import sqlite3
 import os
 
-# records in sql, images in fs
-# contrib.pipeline.images.FSImagesStore
-# sqlite: db size limited by single file size - ext3 2TB ext4 16TB
-
-# conn.row_factory = sqlite3.Row
-# cursor = conn.cursor()
-# cursor.execute('select rowid, * from bookings')
-# row = cursor.fetchone()
-# row['rowid']
-
 class McsoPipeline(object):
 
     def __init__(self):
