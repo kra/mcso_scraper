@@ -2,11 +2,12 @@ from scrapy.spider import BaseSpider
 from scrapy.selector import HtmlXPathSelector
 from scrapy.item import Item, Field
 from scrapy.http import Request, FormRequest
+from scrapy.conf import settings
+import scrapy.log
 
 from lxml import etree
 import urllib, urlparse
 import StringIO
-import logging
 
 # XXX only split out so we don't have to instantiate an item to get it
 def booking_mugshot_dir(booking_id):
@@ -75,7 +76,9 @@ class InmateItem(Item):
             day = int(day)
             return '%s-%02d-%02d %02d:%02d:00' % (year, month, day, hour, min)
         except Exception as exc:
-            logging.warning('could not split date %s: %s' % (field, exc))
+            self.log(
+                'could not split date %s: %s' % (field, exc),
+                level=scrapy.log.ERROR)
             return None
 
     def mugshot_path(self):
@@ -99,11 +102,23 @@ class ChargeItem(Item):
 
 
 class McsoSpider(BaseSpider):
+    IN_CUSTODY = 'IN_CUSTODY'
+    LAST_7_DAYS = 'LAST_7_DAYS'
     name = "mcso"
     #allowed_domains = ["www.mcso.us"]
     start_urls = [
         "http://www.mcso.us/PAID/Default.aspx"
         ]
+
+    def __init__(self, *args, **kwargs):
+        self.booking_form_field = settings['BOOKINGS_TO_DOWNLOAD']
+        if self.booking_form_field not in (
+            self.IN_CUSTODY, self.LAST_7_DAYS):
+            raise Exception(
+                'unknown BOOKINGS_TO_DOWNLOAD value %s' %
+                self.booking_form_field)
+
+        super(McsoSpider, self).__init__(*args, **kwargs)
 
     def absolute_url(self, response, url):
         """ Return an absolute url for given relative url and response """
@@ -115,9 +130,15 @@ class McsoSpider(BaseSpider):
 
     def parse(self, response):
         """ Parse the response to our start urls. """
-        # XXX we may want to select 'last 7 days' or something
+        form_data = {}
+        if self.booking_form_field == self.LAST_7_DAYS:
+            self.log(
+                'Spidering bookings from the last 7 days',
+                level=scrapy.log.INFO)
+            form_data['ctl00$MainContent$PAIDBookingSearch$ddlSearchType'] = '3'
         return [
-            FormRequest.from_response(response, callback=self.parse_inmates)]
+            FormRequest.from_response(
+                response, callback=self.parse_inmates, formdata=form_data)]
 
     def parse_inmates(self, response):
         """ Parse the response to our POST to get the inmates page."""
@@ -158,7 +179,8 @@ class McsoSpider(BaseSpider):
         except ValueError:
             # recent bookings are not always complete
             # this might be better handled by the pipeline validator
-            logging.warning('incomplete page, try again later')
+            self.log('incomplete page, try again later',
+                     level=scrapy.log.WARNING)
             return
         # XXX can't get scrapy's xpath to do me
         # XXX should switch earlier
