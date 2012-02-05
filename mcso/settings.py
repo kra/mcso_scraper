@@ -11,3 +11,5 @@ USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_5_8) AppleWebKit/535.1 (
 DATA_DIRNAME = '../data'
 SQLITE_FILENAME = '/'.join([DATA_DIRNAME, 'db'])
 MUGSHOT_DIRNAME = '/'.join([DATA_DIRNAME, 'mugshots'])
+#BOOKINGS_TO_DOWNLOAD = 'IN_CUSTODY'
+BOOKINGS_TO_DOWNLOAD = 'LAST_7_DAYS'
