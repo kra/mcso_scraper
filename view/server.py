@@ -1,4 +1,4 @@
-from flask import Flask, g, render_template, helpers
+from flask import Flask, g, render_template, helpers, request
 import sqlite3
 import json
 import datetime
@@ -31,6 +31,14 @@ def rows(cur):
     def row_to_dict(row):
         return dict([(k, row[k]) for k in row.keys()])
     return [row_to_dict(row) for row in cur]
+
+def data_tables_json(items, secho, count):
+    """ return a JSON structure suitable for display by a DataTable """
+    return json.dumps(
+        {"sEcho": secho,
+         "iTotalRecords": count,
+         "iTotalDisplayRecords": count, # XXX no filtering
+         "aaData": items})
 
 def booking_index_rows(cur):
     index_rows = rows(cur)
@@ -85,16 +93,52 @@ def booking_mugshot(mugshotid):
     path = '/'.join((MUGSHOT_DIRNAME, path))
     return helpers.send_from_directory(path, mugshotid)
 
-# XXX we get the entire set each call and let the datatable filter/sort it;
-#     switch to server-side to make this more efficient.
+def query_mods(columns):
+    # single-column sortable only
+    # multi-col with _n and iSortingCols
+    try:
+        sort_col = columns[int(request.args.get('iSortCol_0'))]
+    except TypeError:
+        sort_col = columns[0]
+    if request.args.get('sSortDir_0') == 'desc':
+        sort_dir = 'DESC'
+    else:
+        sort_dir = 'ASC'
+    try:
+        offset = int(request.args.get('iDisplayStart'))
+        length = int(request.args.get('iDisplayLength'))
+    except TypeError:
+        offset = 0
+        length = 10
+    # NOT using sql parameter substitution.  All templated values must be
+    # lookups, inted, or otherwise filtered!
+    return 'ORDER BY %s %s LIMIT %s, %s' % (
+        sort_col, sort_dir, offset, length)
+
 @app.route('/data/booking_index')
 def data_booking_index():
-    return json.dumps(booking_index_rows(g.db.execute(
+    secho = request.args.get('sEcho')
+
+    columns = ["name", "age", "swisid", "race",
+               "gender", "parsed_arrestdate",
+               "parsed_bookingdate", "assignedfac",
+               "arrestingagency", "currentstatus"]
+    mods = query_mods(columns)
+    query = (
         'SELECT '
         'rowid, name, age, swisid, race, gender, parsed_arrestdate, '
         'bookingdate, parsed_bookingdate, '
         'assignedfac, arrestingagency, currentstatus '
-        'FROM bookings')))
+        'FROM bookings')
+    query = ' '.join((query, mods))
+    count = g.db.execute('SELECT COUNT(rowid) FROM bookings').next()[0]
+    rows = booking_index_rows(g.db.execute(query))
+    rows = [[row["name_link"], row["age"], row["swisid"], row["race"],
+             row["gender"], row["parsed_arrestdate"],
+             row["parsed_bookingdate"], row["assignedfac"],
+             row["arrestingagency"], row["currentstatus"]]
+            for row in rows]
+    return data_tables_json(rows, secho, count)
 
 # XXX we get the entire set each call and let the datatable filter/sort it;
 #     switch to server-side to make this more efficient.
