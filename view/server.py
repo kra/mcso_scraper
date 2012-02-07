@@ -32,12 +32,12 @@ def rows(cur):
         return dict([(k, row[k]) for k in row.keys()])
     return [row_to_dict(row) for row in cur]
 
-def data_tables_json(items, secho, count):
+def data_tables_json(items, secho, count_all, count_rows):
     """ return a JSON structure suitable for display by a DataTable """
     return json.dumps(
         {"sEcho": secho,
-         "iTotalRecords": count,
-         "iTotalDisplayRecords": count, # XXX no filtering
+         "iTotalRecords": count_all,
+         "iTotalDisplayRecords": count_rows,
          "aaData": items})
 
 def booking_index_rows(cur):
@@ -93,7 +93,7 @@ def booking_mugshot(mugshotid):
     path = '/'.join((MUGSHOT_DIRNAME, path))
     return helpers.send_from_directory(path, mugshotid)
 
-def query_mods(columns):
+def query_sort(columns):
     # single-column sortable only
     # multi-col with _n and iSortingCols
     try:
@@ -115,30 +115,58 @@ def query_mods(columns):
     return 'ORDER BY %s %s LIMIT %s, %s' % (
         sort_col, sort_dir, offset, length)
 
+def query_filter():
+    # XXX this needs subsitution
+    clauses = []
+    # assume date picker validates
+    search_arg = request.args.get('sSearch_6')
+    if search_arg:
+        (start, end) = search_arg.split('~')
+        if start:
+            start = '%s 00:00:00' % start
+            clauses.append('parsed_bookingdate >= "%s"' % start)
+        if end:
+            end = '%s 23:59:59' % end
+            clauses.append('parsed_bookingdate <= "%s"' % end)
+        return ' AND '.join(clauses)
+    return None
+
 @app.route('/data/booking_index')
 def data_booking_index():
-    secho = request.args.get('sEcho')
+    try:
+        secho = int(request.args.get('sEcho'))
+    except TypeError:
+        secho = None
 
     columns = ["name", "age", "swisid", "race",
                "gender", "parsed_arrestdate",
                "parsed_bookingdate", "assignedfac",
                "arrestingagency", "currentstatus"]
-    mods = query_mods(columns)
     query = (
         'SELECT '
         'rowid, name, age, swisid, race, gender, parsed_arrestdate, '
         'bookingdate, parsed_bookingdate, '
         'assignedfac, arrestingagency, currentstatus '
         'FROM bookings')
-    query = ' '.join((query, mods))
-    count = g.db.execute('SELECT COUNT(rowid) FROM bookings').next()[0]
+    sort_clause = query_sort(columns)
+    filter_clause = query_filter()
+    if filter_clause:
+        query = ' WHERE '.join((query, filter_clause))
+    query = ' '.join((query, sort_clause))
+    count_all = g.db.execute('SELECT COUNT(rowid) FROM bookings').next()[0]
+    if filter_clause:
+        count_rows = g.db.execute(
+            ' WHERE '.join(
+                ('SELECT COUNT(rowid) FROM bookings', filter_clause))).next()[0]
+    else:
+        count_rows = count_all
     rows = booking_index_rows(g.db.execute(query))
     rows = [[row["name_link"], row["age"], row["swisid"], row["race"],
              row["gender"], row["parsed_arrestdate"],
              row["parsed_bookingdate"], row["assignedfac"],
              row["arrestingagency"], row["currentstatus"]]
             for row in rows]
-    return data_tables_json(rows, secho, count)
+    return data_tables_json(rows, secho, count_all, count_rows)
 
 # XXX we get the entire set each call and let the datatable filter/sort it;
 #     switch to server-side to make this more efficient.
