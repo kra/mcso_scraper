@@ -117,7 +117,6 @@ class McsoSpider(BaseSpider):
             raise Exception(
                 'unknown BOOKINGS_TO_DOWNLOAD value %s' %
                 self.booking_form_field)
-
         super(McsoSpider, self).__init__(*args, **kwargs)
 
     def absolute_url(self, response, url):
@@ -142,7 +141,6 @@ class McsoSpider(BaseSpider):
 
     def parse_inmates(self, response):
         """ Parse the response to our POST to get the inmates page."""
-        # XXX report on number of bookings found so we can verify scrapingness
         hxs = HtmlXPathSelector(response)
         inmate_urls = hxs.select(
             '//a[contains(@href, "BookingDetail.aspx")]/@href').extract()
@@ -179,7 +177,7 @@ class McsoSpider(BaseSpider):
         except ValueError:
             # recent bookings are not always complete
             # this might be better handled by the pipeline validator
-            self.log('incomplete page, try again later',
+            self.log('incomplete page %s, try again later' % response.url,
                      level=scrapy.log.WARNING)
             return
         # XXX can't get scrapy's xpath to do me
