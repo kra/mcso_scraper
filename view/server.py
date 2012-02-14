@@ -5,16 +5,12 @@ import datetime
 import urllib
 
 import mcso.spiders.mcso_spider
+from scrapy.conf import settings
 
 app = Flask(__name__)
 
-# must match mcso/settings.py
-DATA_DIRNAME = '../data'
-SQLITE_FILENAME = '/'.join([DATA_DIRNAME, 'db'])
-MUGSHOT_DIRNAME = '/'.join([DATA_DIRNAME, 'mugshots'])
-
 def connect_db():
-    conn = sqlite3.connect(SQLITE_FILENAME)
+    conn = sqlite3.connect(settings['SQLITE_FILENAME'])
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -90,7 +86,7 @@ def booking():
 @app.route('/data/mugshots/<mugshotid>')
 def booking_mugshot(mugshotid):
     path = mcso.spiders.mcso_spider.booking_mugshot_dir(mugshotid)
-    path = '/'.join((MUGSHOT_DIRNAME, path))
+    path = '/'.join((settings['MUGSHOT_DIRNAME'], path))
     return helpers.send_from_directory(path, mugshotid)
 
 def query_sort(columns):

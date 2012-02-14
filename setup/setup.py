@@ -2,25 +2,22 @@
 Set up database.
 To be run once, will need a schema version and migrations at some point.
 """
-
 import sqlite3
 import os
 import string
 
-# must match msco/settings.py
-
-DATA_DIRNAME = '../data'
-SQLITE_FILENAME = '/'.join([DATA_DIRNAME, 'db'])
-MUGSHOT_DIRNAME = '/'.join([DATA_DIRNAME, 'mugshots'])
+from scrapy.conf import settings
 
 def get_conn():
     sql_filename = '/'.join(
-        (os.path.dirname(os.path.abspath(__file__)), SQLITE_FILENAME))
+        (os.path.dirname(os.path.abspath(__file__)),
+         settings['SQLITE_FILENAME']))
     return sqlite3.connect(sql_filename)
 
 def setup_fs():
     mugshot_dirname = '/'.join(
-        (os.path.dirname(os.path.abspath(__file__)), MUGSHOT_DIRNAME))
+        (os.path.dirname(os.path.abspath(__file__)),
+         settings['MUGSHOT_DIRNAME']))
     # partition by prefix of booking_id, which starts with swisid,
     # which is all digits, variable length,
     # so make 2 partitions for now, each 1 char prefix
