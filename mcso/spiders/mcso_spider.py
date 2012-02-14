@@ -47,6 +47,13 @@ class InmateItem(Item):
     releasereason = Field()
     booking_id = Field()
 
+    def validate(self):
+        for key in ('swisid', 'bookingdate'):
+            try:
+                _ = self[key]
+            except KeyError:
+                raise Exception('missing required key %s' % key)
+
     #XXX properties
     def parsed_date(self, field):
         """
@@ -168,9 +175,12 @@ class McsoSpider(BaseSpider):
                 value = field.select('text()').extract()[0]
             except IndexError:
                 value = None
-            # XXX rescue and log if key isn't expected rather than fail
-            inmate_item[key.lower()] = value
-
+            try:
+                inmate_item[key.lower()] = value
+            except KeyError:
+                self.log(
+                    'got unexpected key %s at %s' % (key, response.url),
+                    level=scrapy.log.ERROR)
         try:
             (case_table,) = hxs.select(
                 '//table[@id="ctl00_MainContent_CaseDataList"]')

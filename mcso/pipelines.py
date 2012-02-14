@@ -11,6 +11,7 @@ class McsoPipeline(object):
         return sqlite3.connect(settings['SQLITE_FILENAME'])
 
     def process_item(self, item, spider):
+        item.validate()
         cursor = self.conn.cursor()
         # create/replace new booking
         cursor.execute(
