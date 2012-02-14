@@ -5,12 +5,12 @@ $(document).ready(function() {
 
     var booking_index_href = '../data/booking_index'
     booking_index_href += '?_=' + Number(new Date());
+    // XXX we don't need to getJSON anymore
     $.getJSON(booking_index_href, function(index_objs) {
         $('#booking_table').dataTable({
             "bProcessing": true,
             "bServerSide": true,
             "sAjaxSource": booking_index_href,
-            //"bFilter": false,
             "aoColumns": [
                 { "sTitle": "name" },
                 { "sTitle": "age" },

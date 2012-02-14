@@ -115,11 +115,14 @@ def query_sort(columns):
     return 'ORDER BY %s %s LIMIT %s, %s' % (
         sort_col, sort_dir, offset, length)
 
-def query_filter():
+def query_filter(search_arg):
+    """
+    Return a query clause to sort parsed_bookingdate by the given
+    columnFilter datetime value.
+    """
     # XXX this needs subsitution
     clauses = []
     # assume date picker validates
-    search_arg = request.args.get('sSearch_6')
     if search_arg:
         (start, end) = search_arg.split('~')
         if start:
@@ -145,11 +148,11 @@ def data_booking_index():
     query = (
         'SELECT '
         'rowid, name, age, swisid, race, gender, parsed_arrestdate, '
-        'bookingdate, parsed_bookingdate, '
-        'assignedfac, arrestingagency, currentstatus '
+        'bookingdate, parsed_bookingdate, assignedfac, arrestingagency, '
+        'currentstatus '
         'FROM bookings')
     sort_clause = query_sort(columns)
-    filter_clause = query_filter()
+    filter_clause = query_filter(request.args.get('sSearch_6'))
     if filter_clause:
         query = ' WHERE '.join((query, filter_clause))
     query = ' '.join((query, sort_clause))
@@ -157,7 +160,8 @@ def data_booking_index():
     if filter_clause:
         count_rows = g.db.execute(
             ' WHERE '.join(
-                ('SELECT COUNT(rowid) FROM bookings', filter_clause))).next()[0]
+                ('SELECT COUNT(rowid) FROM bookings',
+                 filter_clause))).next()[0]
     else:
         count_rows = count_all
     rows = booking_index_rows(g.db.execute(query))
@@ -168,17 +172,43 @@ def data_booking_index():
             for row in rows]
     return data_tables_json(rows, secho, count_all, count_rows)
 
-# XXX we get the entire set each call and let the datatable filter/sort it;
-#     switch to server-side to make this more efficient.
 @app.route('/data/charge_index')
 def data_charge_index():
-    return json.dumps(charge_index_rows(g.db.execute(
+    try:
+        secho = int(request.args.get('sEcho'))
+    except TypeError:
+        secho = None
+
+    columns = ["charge", "status", "bail",
+               "parsed_arrestdate", "parsed_bookingdate"]
+    query = (
         'SELECT bookings.rowid, bookings.swisid, '
-        'bookings.arrestdate, bookings.bookingdate, '
+        'bookings.parsed_arrestdate, bookings.parsed_bookingdate, '
         'charges.charge, charges.bail, charges.status '
         'FROM charges '
         'JOIN cases ON charges.case_id = cases.rowid '
-        'JOIN bookings ON cases.booking_id = bookings.rowid')))
+        'JOIN bookings ON cases.booking_id = bookings.rowid')
+    sort_clause = query_sort(columns)
+    filter_clause = query_filter(request.args.get('sSearch_4'))
+    if filter_clause:
+        query = ' WHERE '.join((query, filter_clause))
+    query = ' '.join((query, sort_clause))
+    count_all = g.db.execute('SELECT COUNT(rowid) FROM charges').next()[0]
+    if filter_clause:
+        # XXX must get from bookings too
+        count_rows = g.db.execute(
+            ' WHERE '.join(
+                ('SELECT COUNT(charges.rowid) FROM charges '
+                 'JOIN cases ON charges.case_id = cases.rowid '
+                 'JOIN bookings ON cases.booking_id = bookings.rowid',
+                 filter_clause))).next()[0]
+    else:
+        count_rows = count_all
+    rows = charge_index_rows(g.db.execute(query))
+    rows = [[row["charge_link"], row["status"], row["bail"],
+             row["parsed_arrestdate"], row["parsed_bookingdate"]]
+            for row in rows]
+    return data_tables_json(rows, secho, count_all, count_rows)
 
 @app.route('/booking_index')
 def booking_index():

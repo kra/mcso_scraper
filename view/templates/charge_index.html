@@ -6,15 +6,40 @@
 </head>
 <body>
   <script src="/static/jquery-1.6.4.js"></script>
+  <script src="/static/jquery-ui-1.8.17.custom.min.js"></script>
+  <script src="/static/jquery.datePicker.js"></script>
+  <script src="/static/date.js"></script>
   <script src="/static/DataTables-1.8.2/media/js/jquery.dataTables.js"></script>
+  <script src="/static/jquery.dataTables.columnFilter.js"></script>
   <script src="/static/charge_index.js"></script>
   <style type="text/css" title="currentStyle">
       @import "/static/DataTables-1.8.2/media/css/demo_page.css";
       @import "/static/DataTables-1.8.2/media/css/demo_table.css";
+      @import "/static/jquery-ui-themes/jquery-ui.css";
+      .dataTables_filter {display: none;}
   </style>
 
   <h2>Charge Index</h2>
   <table id="charge_table">
+    <thead>
+      <tr>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th></th>
+      </tr>
+    </thead>
+    <tfoot>
+      <tr>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th></th>
+      </tr>
+    </tfoot>
+    <tbody></tbody>
   </table>
 
 </body>
