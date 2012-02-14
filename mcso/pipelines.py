@@ -8,11 +8,7 @@ class McsoPipeline(object):
         self.conn = self.get_conn()
 
     def get_conn(self):
-        # assume / pathsep
-        sql_filename = '/'.join(
-            (os.path.dirname(os.path.abspath(__file__)),
-             settings['SQLITE_FILENAME']))
-        return sqlite3.connect(sql_filename)
+        return sqlite3.connect(settings['SQLITE_FILENAME'])
 
     def process_item(self, item, spider):
         cursor = self.conn.cursor()
@@ -80,9 +76,7 @@ class McsoPipeline(object):
     def write_mugshot(self, item):
         """ write mugshot to file and return it's ID """
         mugshot_filename = '/'.join(
-            (os.path.dirname(os.path.abspath(__file__)),
-             settings['MUGSHOT_DIRNAME'],
-             item.mugshot_path()))
+            (settings['MUGSHOT_DIRNAME'], item.mugshot_path()))
         mugshot_file = open(mugshot_filename, 'wb')
         item['mugshot'].seek(0)
 
