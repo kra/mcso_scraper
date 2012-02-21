@@ -1,0 +1,55 @@
+To set up and run on a current vanilla mumblemumble Ubuntu box:
+
+This setup assumes you want to scrape daily, and the scraper will complete
+daily.  A real scheduler like supervisord is safer, but probably unecessary.
+
+apt-get install python-dev
+apt-get install libxml2-dev libxslt-dev
+cd /user/local/share
+git clone https://kra@github.com/kra/mcso_scraper.git
+cd mcso_scraper
+virutalenv env
+source env/bin/activate
+# prereqs for scrapy
+pip install twisted
+pip install w3lib
+pip install lxml
+pip install scrapy
+pip install flask
+python setup/setup.py
+# hackish workaround for using nobody instead of a dedicated user
+find data -exec chown nobody {} \;
+
+/usr/local/share/mcso_scraper/run.sh:
+
+#!/bin/bash                                                                     
+DIR=`dirname $0`                                                                
+cd $DIR && source env/bin/activate && scrapy crawl mcso
+
+/usr/local/share/mcso_scraper/run_viewer.sh:
+
+#!/bin/bash                                                                     
+DIR=`dirname $0`                                                                
+cd $DIR && source env/bin/activate && env PYTHONPATH=. view/server.py           
+
+/etc/cron.daily:
+
+#!/bin/bash                                                                     
+sudo -u nobody /usr/local/share/mcso_scraper/run.sh >/var/log/msco_scraper.log
+
+/etc/logrotate.d/mcso_scraper:
+
+/var/log/mcso_scraper.log {
+	weekly
+	missingok
+	rotate 52
+	notifempty
+	create 640 nobody adm
+	sharedscripts
+}
+
+/etc/init.d/mcso_viewer:
+
+#!/bin/bash
+cd /usr/local/share/mcso_scraper
+sudo -u nobody /usr/local/share/mcso_scraper/run_viewer.sh
