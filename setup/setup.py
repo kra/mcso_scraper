@@ -9,10 +9,7 @@ import string
 from scrapy.conf import settings
 
 def get_conn():
-    sql_filename = '/'.join(
-        (os.path.dirname(os.path.abspath(__file__)),
-         settings['SQLITE_FILENAME']))
-    return sqlite3.connect(sql_filename)
+    return sqlite3.connect(settings['SQLITE_FILENAME'])
 
 def setup_fs():
     mugshot_dirname = '/'.join(
