@@ -12,15 +12,13 @@ def get_conn():
     return sqlite3.connect(settings['SQLITE_FILENAME'])
 
 def setup_fs():
-    mugshot_dirname = '/'.join(
-        (os.path.dirname(os.path.abspath(__file__)),
-         settings['MUGSHOT_DIRNAME']))
     # partition by prefix of booking_id, which starts with swisid,
     # which is all digits, variable length,
     # so make 2 partitions for now, each 1 char prefix
     for dirname1 in string.digits:
         for dirname2 in string.digits:
-            os.makedirs('/'.join((mugshot_dirname, dirname1, dirname2)))
+            os.makedirs(
+                '/'.join((settings['MUGSHOT_DIRNAME'], dirname1, dirname2)))
 
 def update(conn):
     """
