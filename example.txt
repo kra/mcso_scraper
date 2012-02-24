@@ -5,10 +5,10 @@ daily.  A real scheduler like supervisord is safer, but probably unecessary.
 
 apt-get install python-dev
 apt-get install libxml2-dev libxslt-dev
-cd /user/local/share
+cd /usr/local/share
 git clone https://kra@github.com/kra/mcso_scraper.git
 cd mcso_scraper
-virutalenv env
+virtualenv env
 source env/bin/activate
 # prereqs for scrapy
 pip install twisted
@@ -20,19 +20,19 @@ python setup/setup.py
 # hackish workaround for using nobody instead of a dedicated user
 find data -exec chown nobody {} \;
 
-/usr/local/share/mcso_scraper/run.sh:
+/usr/local/share/mcso_scraper/run.sh (executable):
 
 #!/bin/bash                                                                     
 DIR=`dirname $0`                                                                
 cd $DIR && source env/bin/activate && scrapy crawl mcso
 
-/usr/local/share/mcso_scraper/run_viewer.sh:
+/usr/local/share/mcso_scraper/run_viewer.sh (executable):
 
 #!/bin/bash                                                                     
 DIR=`dirname $0`                                                                
 cd $DIR && source env/bin/activate && env PYTHONPATH=. view/server.py           
 
-/etc/cron.daily:
+/etc/cron.daily/mcso_scraper (executable):
 
 #!/bin/bash                                                                     
 sudo -u nobody /usr/local/share/mcso_scraper/run.sh >>/var/log/mcso_scraper.log 2>>/var/log/mcso_scraper.log
@@ -49,6 +49,8 @@ sudo -u nobody /usr/local/share/mcso_scraper/run.sh >>/var/log/mcso_scraper.log 
 }
 
 /etc/init.d/mcso_viewer:
+
+# XXX a real init script that does this with start/stop
 
 #!/bin/bash
 cd /usr/local/share/mcso_scraper
