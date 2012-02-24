@@ -35,7 +35,7 @@ cd $DIR && source env/bin/activate && env PYTHONPATH=. view/server.py
 /etc/cron.daily:
 
 #!/bin/bash                                                                     
-sudo -u nobody /usr/local/share/mcso_scraper/run.sh >/var/log/msco_scraper.log
+sudo -u nobody /usr/local/share/mcso_scraper/run.sh >>/var/log/mcso_scraper.log 2>>/var/log/mcso_scraper.log
 
 /etc/logrotate.d/mcso_scraper:
 
