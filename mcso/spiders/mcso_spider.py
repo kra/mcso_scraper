@@ -58,7 +58,7 @@ class InmateItem(Item):
     def parsed_date(self, field):
         """
         Return a sortable date string from the given string in the format
-        used by mcso.
+        used by mcso, or None.
         """
         if field is None or field == 'Unknown':
             return None
@@ -103,9 +103,22 @@ class CaseItem(Item):
 
 
 class ChargeItem(Item):
-   charge = Field()
-   bail = Field()
-   status = Field()
+    charge = Field()
+    bail = Field()
+    status = Field()
+
+    #XXX properties
+    def parsed_bail(self, field):
+        """
+        Return a sortable bail string from the given string in the format
+        used by mcso, or None.
+        """
+        # keep as a string for sqlite's numeric affinity
+        # might want to try/fail if the outcome isn't intable to notice bad
+        # data; OTOH bad formatted data might still be useful
+        if field is None:
+            return None
+        return field.replace('$', '').replace(',', '')
 
 
 class McsoSpider(BaseSpider):

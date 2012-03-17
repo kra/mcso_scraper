@@ -14,7 +14,7 @@ $(document).ready(function() {
             "aoColumns": [
                 { "sTitle": "charge" },
                 { "sTitle": "status" },
-                { "sTitle": "bail" },
+                { "sTitle": "parsed_bail"},
                 { "sTitle": "parsed_arrestdate" },
                 { "sTitle": "parsed_bookingdate", "bSearchable": true }]
         }).columnFilter({

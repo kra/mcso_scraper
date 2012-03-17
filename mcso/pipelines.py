@@ -64,9 +64,9 @@ class McsoPipeline(object):
             case_id = cursor.lastrowid
             for charge in case.get('charges', []):
                 cursor.execute(
-                    'INSERT INTO charges VALUES (?, ?, ?, ?)',
+                    'INSERT INTO charges VALUES (?, ?, ?, ?, ?)',
                     (case_id, charge.get('charge'),
-                     charge.get('bail'),
+                     charge.get('bail'), charge.parsed_bail(charge.get('bail')),
                      charge.get('status')))
         self.conn.commit()
         item['booking_id'] = booking_id

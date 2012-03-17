@@ -6,9 +6,12 @@ requirements:
     scrapy
     flask
 
-set up:
+set up storage the first time:
 
-    run once:
+    python setup/setup.py boot
+
+update storage after updating source:
+
     python setup/setup.py
 
 crawl:

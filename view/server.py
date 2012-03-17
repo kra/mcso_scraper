@@ -177,12 +177,12 @@ def data_charge_index():
     except TypeError:
         secho = None
 
-    columns = ["charge", "status", "bail",
+    columns = ["charge", "status", "parsed_bail",
                "parsed_arrestdate", "parsed_bookingdate"]
     query = (
         'SELECT bookings.rowid, bookings.swisid, '
         'bookings.parsed_arrestdate, bookings.parsed_bookingdate, '
-        'charges.charge, charges.bail, charges.status '
+        'charges.charge, charges.parsed_bail, charges.status '
         'FROM charges '
         'JOIN cases ON charges.case_id = cases.rowid '
         'JOIN bookings ON cases.booking_id = bookings.rowid')
@@ -203,7 +203,7 @@ def data_charge_index():
     else:
         count_rows = count_all
     rows = charge_index_rows(g.db.execute(query))
-    rows = [[row["charge_link"], row["status"], row["bail"],
+    rows = [[row["charge_link"], row["status"], row["parsed_bail"],
              row["parsed_arrestdate"], row["parsed_bookingdate"]]
             for row in rows]
     return data_tables_json(rows, secho, count_all, count_rows)

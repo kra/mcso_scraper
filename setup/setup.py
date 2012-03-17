@@ -1,6 +1,8 @@
 """
-Set up database.
-To be run once, will need a schema version and migrations at some point.
+Set up or update storage.
+Usage:
+  setup.py boot
+  setup.py
 """
 import sqlite3
 import os
@@ -20,17 +22,12 @@ def setup_fs():
             os.makedirs(
                 '/'.join((settings['MUGSHOT_DIRNAME'], dirname1, dirname2)))
 
-def update(conn):
-    """
-    Bring database to current schema.
-    """
-    # currently just one schema version, must check/update when we have real
-    # migrations
-
+def setup_db(conn):
     # create, init config table for schema
     conn.execute('CREATE TABLE config (name TEXT, value INTEGER)')
     conn.execute('INSERT INTO config VALUES ("schema", 0)')
 
+def update_schema_1(conn):
     # create data tables
     conn.execute(
         'CREATE TABLE charges '
@@ -53,8 +50,45 @@ def update(conn):
 
     # update config table to reflect current schema version
     conn.execute('UPDATE config SET value=1 WHERE name="schema"')
+    conn.commit()
+
+def update_schema_2(conn):
+    conn.execute('ALTER TABLE charges ADD COLUMN parsed_bail NUMERIC')
+    charge_rows = conn.execute('SELECT rowid, bail FROM charges')
+    # update existing rows
+    # keep as a string for sqlite's numeric affinity
+    # XXX duplicates the item parsed_bail()
+    for (rowid, bail) in charge_rows:
+        parsed_bail = bail.replace('$', '').replace(',', '')
+        conn.execute(
+            'UPDATE charges SET parsed_bail=? WHERE rowid=?',
+            (parsed_bail, rowid))
+
+    # update config table to reflect current schema version
+    conn.execute('UPDATE config SET value=2 WHERE name="schema"')
+    conn.commit()
+
+def get_schema(conn):
+    ((schema,),) = conn.execute('SELECT value FROM config WHERE name="schema"')
+    return schema
+
+def update_db(conn):
+    """
+    Bring database to current schema.
+    """
+    print 'at schema', get_schema(conn)
+    if get_schema(conn) < 1:
+        print 'updating to schema 1'
+        update_schema_1(conn)
+    if get_schema(conn) < 2:
+        print 'updating to schema 2'
+        update_schema_2(conn)
+
 
 if __name__ == '__main__':
-    setup_fs()
+    import sys
     conn = get_conn()
-    update(conn)
+    if sys.argv[-1] == 'boot':
+        setup_fs()
+        setup_db(conn)
+    update_db(conn)
