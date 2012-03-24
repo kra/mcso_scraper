@@ -1,3 +1,9 @@
+div#case_header {
+  max-width: 45em;
+  margin-left: auto;
+  margin-right: auto;
+}
+
 div#case_header li{
   width:33%;
   display: block;
@@ -6,6 +12,7 @@ div#case_header li{
 }
 
 div#charge_table table{
+  //max-width: 50em;
   margin-left: auto;
   margin-right: auto;
 }
