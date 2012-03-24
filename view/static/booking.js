@@ -50,27 +50,30 @@ $(document).ready(function() {
     function munge_booking_obj(obj) {
         out = Object;
         $.each(
-            {'height': 'Height',
-             'weight': 'Weight',
-             'hair': 'Hair',
+            {'name': 'Name',
              'swisid': 'SWIS ID',
              'bookingdate': 'Booking Date',
-             'currentstatus': 'Current Status',
-             'eyes': 'Eyes',
-             'releasereason': 'Release Reason',
              'arrestdate': 'Arrest Date',
+             'currentstatus': 'Current Status',
              'projreldate': 'Projected Release Date',
-             'name': 'Name',
-             'assignedfac': 'Assigned Facility',
-             'age': 'Age',
              'releasedate': 'Release Date',
-             'race': 'Race',
+             'releasereason': 'Release Reason',
+                    'arrestingagency': 'Arresting Agency',
+             'assignedfac': 'Assigned Facility',
              'gender': 'Gender',
-             'arrestingagency': 'Arresting Agency'},
+             'age': 'Age',
+             'height': 'Height',
+             'weight': 'Weight',
+             'hair': 'Hair',
+             'eyes': 'Eyes',
+             'race': 'Race'},
             function(key_in, key_out) {
                 out[key_out] = obj[key_in];
             });
         out['URL'] = orig_url(obj['url']);
+        $.each(out, function(k) {
+                if (out[k] == null) {out[k] = 'None'};
+            });
         return out;
     }
 
@@ -107,6 +110,12 @@ $(document).ready(function() {
     var json_href = '/data/booking/' + url_param('booking');
     $.getJSON(json_href, function(data) {
         var item = booking_item(data);
+        $('<title/>', {
+            'text': 'Booking: ' + data.name
+        }).prependTo('head');
+        $('<h1/>', {
+            'text': data.name
+        }).prependTo('body');
         $('<div/>', {
             'html': item
         }).appendTo('#booking_div');
