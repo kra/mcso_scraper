@@ -109,7 +109,7 @@ $(document).ready(function() {
         var item = booking_item(data);
         $('<div/>', {
             'html': item
-        }).appendTo('body');
+        }).appendTo('#booking_div');
     });
     
 });    
