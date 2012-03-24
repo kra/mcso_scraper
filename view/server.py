@@ -139,17 +139,17 @@ def data_booking_index():
     except TypeError:
         secho = None
 
-    columns = ["name", "age", "swisid", "race",
-               "gender", "parsed_arrestdate",
-               "parsed_bookingdate", "assignedfac",
-               "arrestingagency", "currentstatus"]
+    sort_columns = ["name", "age", "swisid", "race",
+                    "gender", "parsed_arrestdate",
+                    "parsed_bookingdate", "assignedfac",
+                    "arrestingagency", "currentstatus"]
     query = (
         'SELECT '
-        'rowid, name, age, swisid, race, gender, parsed_arrestdate, '
-        'bookingdate, parsed_bookingdate, assignedfac, arrestingagency, '
+        'rowid, name, age, swisid, race, gender, arrestdate, '
+        'bookingdate, assignedfac, arrestingagency, '
         'currentstatus '
         'FROM bookings')
-    sort_clause = query_sort(columns)
+    sort_clause = query_sort(sort_columns)
     filter_clause = query_filter(request.args.get('sSearch_6'))
     if filter_clause:
         query = ' WHERE '.join((query, filter_clause))
@@ -164,8 +164,8 @@ def data_booking_index():
         count_rows = count_all
     rows = booking_index_rows(g.db.execute(query))
     rows = [[row["name_link"], row["age"], row["swisid"], row["race"],
-             row["gender"], row["parsed_arrestdate"],
-             row["parsed_bookingdate"], row["assignedfac"],
+             row["gender"], row["arrestdate"],
+             row["bookingdate"], row["assignedfac"],
              row["arrestingagency"], row["currentstatus"]]
             for row in rows]
     return data_tables_json(rows, secho, count_all, count_rows)
@@ -177,16 +177,16 @@ def data_charge_index():
     except TypeError:
         secho = None
 
-    columns = ["charge", "status", "parsed_bail",
-               "parsed_arrestdate", "parsed_bookingdate"]
+    sort_columns = ["charge", "status", "parsed_bail",
+                    "parsed_arrestdate", "parsed_bookingdate"]
     query = (
         'SELECT bookings.rowid, bookings.swisid, '
-        'bookings.parsed_arrestdate, bookings.parsed_bookingdate, '
-        'charges.charge, charges.parsed_bail, charges.status '
+        'bookings.arrestdate, bookings.bookingdate, '
+        'charges.charge, charges.bail, charges.status '
         'FROM charges '
         'JOIN cases ON charges.case_id = cases.rowid '
         'JOIN bookings ON cases.booking_id = bookings.rowid')
-    sort_clause = query_sort(columns)
+    sort_clause = query_sort(sort_columns)
     filter_clause = query_filter(request.args.get('sSearch_4'))
     if filter_clause:
         query = ' WHERE '.join((query, filter_clause))
@@ -203,8 +203,8 @@ def data_charge_index():
     else:
         count_rows = count_all
     rows = charge_index_rows(g.db.execute(query))
-    rows = [[row["charge_link"], row["status"], row["parsed_bail"],
-             row["parsed_arrestdate"], row["parsed_bookingdate"]]
+    rows = [[row["charge_link"], row["status"], row["bail"],
+             row["arrestdate"], row["bookingdate"]]
             for row in rows]
     return data_tables_json(rows, secho, count_all, count_rows)
 
@@ -240,5 +240,5 @@ def index():
 
 if __name__ == '__main__':
     #app.run(host='0.0.0.0')
-    #app.run(debug=True)
-    app.run()
+    app.run(debug=True)
+    #app.run()

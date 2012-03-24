@@ -10,11 +10,11 @@ $(document).ready(function() {
         "bServerSide": true,
         "sAjaxSource": charge_index_href,
         "aoColumns": [
-            { "sTitle": "charge" },
-            { "sTitle": "status" },
-            { "sTitle": "parsed_bail"},
-            { "sTitle": "parsed_arrestdate" },
-            { "sTitle": "parsed_bookingdate", "bSearchable": true }]
+            { "sTitle": "Charge" },
+            { "sTitle": "Status" },
+            { "sTitle": "Bail"},
+            { "sTitle": "Arrest Date" },
+            { "sTitle": "Booking Date", "bSearchable": true }]
     }).columnFilter({
         "sPlaceHolder": "foot",
         "aoColumns": [
