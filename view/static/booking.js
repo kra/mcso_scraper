@@ -70,25 +70,29 @@ $(document).ready(function() {
             function(key_in, key_out) {
                 out[key_out] = obj[key_in];
             });
-        out['mugshot'] = mugshot_img(obj);
         out['URL'] = orig_url(obj['url']);
         return out;
     }
 
     function booking_item(obj) {
         out = '';
-        out += obj_to_dlist(munge_booking_obj(obj));
+        out += mugshot_item(obj);
+        out += booking_dlist(munge_booking_obj(obj));
         out += cases_item(obj['cases']);
         return out;
     }
 
-    function obj_to_dlist(obj) {
-        // return a <dl><dt><dd> string from the given object
+    function mugshot_item(obj) {
+        return '<div id="mugshot">' + mugshot_img(obj) + '</div>';
+    }
+
+    function booking_dlist(obj) {
+        // return a <div><dl><dt><dd> string from the given object
         var items = [];
         $.each(obj, function(key, val) {
             items.push('<dt>' + key + '</dt><dd>' + val + '</dd>');
         });
-        return '<dl>' + items.join('') + '</dl>';
+        return '<div id="booking_list"><dl>' + items.join('') + '</dl></div>';
     }
 
     function url_param(name) {
@@ -104,7 +108,6 @@ $(document).ready(function() {
     $.getJSON(json_href, function(data) {
         var item = booking_item(data);
         $('<div/>', {
-            'class': 'booking-list',
             'html': item
         }).appendTo('body');
     });

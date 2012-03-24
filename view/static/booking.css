@@ -14,3 +14,29 @@ div#charge_table td{
   border: 1px solid;
   padding: 1em;
 }
+
+div#booking_list dl {
+    padding: 0.5em;
+}
+
+div#booking_list dt {
+    float: left;
+    clear: left;
+    width: 15em;
+    text-align: right;
+    font-weight: bold;
+    padding: 0 0.5em 0 0;
+  }
+
+div#booking_list dt:after {
+    content: ":";
+}
+
+div#booking_list dd {
+    //margin: 0 0 0 110px;
+    padding: 0 0.5em 0.5em 0;
+}
+
+div#mugshot {
+    float: right;
+}
