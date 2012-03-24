@@ -48,23 +48,47 @@ $(document).ready(function() {
     }
 
     function munge_booking_obj(obj) {
-        obj['mugshot'] = mugshot_img(obj);
-        obj['url'] = orig_url(obj['url']);
-        obj['cases'] = cases_item(obj['cases']);
-        return obj;
+        out = Object;
+        $.each(
+            {'height': 'Height',
+             'weight': 'Weight',
+             'hair': 'Hair',
+             'swisid': 'SWIS ID',
+             'bookingdate': 'Booking Date',
+             'currentstatus': 'Current Status',
+             'eyes': 'Eyes',
+             'releasereason': 'Release Reason',
+             'arrestdate': 'Arrest Date',
+             'projreldate': 'Projected Release Date',
+             'name': 'Name',
+             'assignedfac': 'Assigned Facility',
+             'age': 'Age',
+             'releasedate': 'Release Date',
+             'race': 'Race',
+             'gender': 'Gender',
+             'arrestingagency': 'Arresting Agency'},
+            function(key_in, key_out) {
+                out[key_out] = obj[key_in];
+            });
+        out['mugshot'] = mugshot_img(obj);
+        out['URL'] = orig_url(obj['url']);
+        return out;
     }
 
-    function booking_to_dlist(obj) {
-        return obj_to_dlist(munge_booking_obj(obj));
+    function booking_item(obj) {
+        out = '';
+        out += obj_to_dlist(munge_booking_obj(obj));
+        out += cases_item(obj['cases']);
+        return out;
     }
 
     function obj_to_dlist(obj) {
-        // return a string of <dt><dd> elements from the given object
+        // return a <dl><dt><dd> string from the given object
         var items = [];
         $.each(obj, function(key, val) {
             items.push('<dt>' + key + '</dt><dd>' + val + '</dd>');
         });
-        return items.join('');
+        return '<dl>' + items.join('') + '</dl>';
     }
 
     function url_param(name) {
@@ -78,10 +102,10 @@ $(document).ready(function() {
     // write HTML from the indicated booking data to document body
     var json_href = '/data/booking/' + url_param('booking');
     $.getJSON(json_href, function(data) {
-        var items = booking_to_dlist(data);
-        $('<dl/>', {
+        var item = booking_item(data);
+        $('<div/>', {
             'class': 'booking-list',
-            'html': items
+            'html': item
         }).appendTo('body');
     });
     
