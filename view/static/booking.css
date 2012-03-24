@@ -1,0 +1,16 @@
+div#case_header li{
+  width:33%;
+  display: block;
+  float: left;
+  text-align:center;
+}
+
+div#charge_table table{
+  margin-left: auto;
+  margin-right: auto;
+}
+
+div#charge_table td{
+  border: 1px solid;
+  padding: 1em;
+}
