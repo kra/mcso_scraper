@@ -12,16 +12,6 @@ $(document).ready(function() {
         return '<a href="' + obj_url + '">' + obj_url + '</a>';
     }
 
-    function array_to_dlist(arr, name) {
-        // return a string of <dt><dd> elements from the given array
-        var items = [];
-        $.each(arr, function(index, val) {
-            items.push('<dt>' + name + '</dt><dd><dl>' + 
-                       obj_to_dlist(val) + '</dl></dd>');
-        });
-        return '<dl>' + items.join('') + '</dl>';
-    }
-
     function charge_table_row(charge) {
         row = '<tr>';
         row += '<td>' + charge['charge'] + '</td>';
