@@ -221,22 +221,42 @@ def index():
     (bookings_count,) = rows(g.db.execute(
         'SELECT COUNT(rowid) FROM bookings'))
     bookings_count = bookings_count['COUNT(rowid)']
-    day_1 = datetime.datetime.utcnow() - datetime.timedelta(days=1)
-    day_7 = datetime.datetime.utcnow() - datetime.timedelta(days=7)
+    now = datetime.datetime.utcnow()
+    day_0 = now.replace(hour=0, minute=0, second=0)
+    day_1 = day_0 - datetime.timedelta(days=1)
+    day_2 = day_1 - datetime.timedelta(days=1)
+    week_0 = day_0 - datetime.timedelta(days=now.weekday())
+    week_1 = week_0 - datetime.timedelta(days=7)
+    week_2 = week_1 - datetime.timedelta(days=7)
+
     (bookings_1_count,) = rows(g.db.execute(
-        'SELECT COUNT(rowid) FROM bookings WHERE updated_on>?',
-        (day_1.strftime('%Y-%m-%d %H:%M:%S'),)))
+        'SELECT COUNT(rowid) FROM bookings WHERE updated_on>? AND updated_on<?',
+        (day_1.strftime('%Y-%m-%d %H:%M:%S'),
+         day_0.strftime('%Y-%m-%d %H:%M:%S'))))
     bookings_1_count = bookings_1_count['COUNT(rowid)']
-    (bookings_7_count,) = rows(g.db.execute(
-        'SELECT COUNT(rowid) FROM bookings WHERE updated_on>?',
-        (day_7.strftime('%Y-%m-%d %H:%M:%S'),)))
-    bookings_7_count = bookings_7_count['COUNT(rowid)']
+    (bookings_2_count,) = rows(g.db.execute(
+        'SELECT COUNT(rowid) FROM bookings WHERE updated_on>? AND updated_on<?',
+        (day_2.strftime('%Y-%m-%d %H:%M:%S'),
+         day_1.strftime('%Y-%m-%d %H:%M:%S'))))
+    bookings_2_count = bookings_2_count['COUNT(rowid)']
+    (bookings_w1_count,) = rows(g.db.execute(
+        'SELECT COUNT(rowid) FROM bookings WHERE updated_on>? AND updated_on<?',
+        (week_1.strftime('%Y-%m-%d %H:%M:%S'),
+         week_0.strftime('%Y-%m-%d %H:%M:%S'))))
+    bookings_w1_count = bookings_w1_count['COUNT(rowid)']
+    (bookings_w2_count,) = rows(g.db.execute(
+        'SELECT COUNT(rowid) FROM bookings WHERE updated_on>? AND updated_on<?',
+        (week_2.strftime('%Y-%m-%d %H:%M:%S'),
+         week_1.strftime('%Y-%m-%d %H:%M:%S'))))
+    bookings_w2_count = bookings_w2_count['COUNT(rowid)']
 
     return render_template(
         'index.html',
         bookings_count=bookings_count,
         bookings_1_count=bookings_1_count,
-        bookings_7_count=bookings_7_count)
+        bookings_2_count=bookings_2_count,
+        bookings_w1_count=bookings_w1_count,
+        bookings_w2_count=bookings_w2_count)
 
 if __name__ == '__main__':
     #app.run(host='0.0.0.0')
