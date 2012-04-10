@@ -113,21 +113,21 @@ def query_sort(columns):
     return 'ORDER BY %s %s LIMIT %s, %s' % (
         sort_col, sort_dir, offset, length)
 
-def query_filter(booking_date_start, booking_date_end):
+def query_filter(field, start, end):
     """
-    Return a query clause to sort parsed_bookingdate by the given
+    Return a query clause to sort the given datetime field by the given
     columnFilter datetime values.
     """
     # XXX this needs subsitution
     clauses = []
     # assume date picker validates
-    if booking_date_start or booking_date_end:
-        if booking_date_start:
-            start = '%s 00:00:00' % booking_date_start
-            clauses.append('parsed_bookingdate >= "%s"' % booking_date_start)
-        if booking_date_end:
-            end = '%s 23:59:59' % booking_date_end
-            clauses.append('parsed_bookingdate <= "%s"' % booking_date_end)
+    if start or end:
+        if start:
+            start = '%s 00:00:00' % start
+            clauses.append('%s >= "%s"' % (field, start))
+        if end:
+            end = '%s 23:59:59' % end
+            clauses.append('%s <= "%s"' % (field, end))
         return ' AND '.join(clauses)
     return None
 
@@ -150,6 +150,7 @@ def data_booking_index():
         'FROM bookings')
     sort_clause = query_sort(sort_columns)
     filter_clause = query_filter(
+        'parsed_bookingdate',
         request.args.get('booking_date_start'),
         request.args.get('booking_date_end'))
     if filter_clause:
@@ -189,6 +190,7 @@ def data_charge_index():
         'JOIN bookings ON cases.booking_id = bookings.rowid')
     sort_clause = query_sort(sort_columns)
     filter_clause = query_filter(
+        'parsed_bookingdate',
         request.args.get('booking_date_start'),
         request.args.get('booking_date_end'))
     if filter_clause:
