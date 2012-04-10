@@ -1,0 +1,18 @@
+form#booking_date {
+  border: 1px solid;
+  padding: 1em;
+  overflow: auto;
+}
+
+#booking_date_inputs{
+  display: inline;
+  list-style-type:none;
+}
+
+#booking_date_input{
+  float: left;
+}
+
+#table_container {
+  padding-top: 1em
+}

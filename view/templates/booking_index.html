@@ -16,6 +16,7 @@
       @import "/static/DataTables-1.8.2/media/css/demo_page.css";
       @import "/static/DataTables-1.8.2/media/css/demo_table.css";
       @import "/static/jquery-ui-themes/jquery-ui.css";
+      @import "/static/index.css";
       .dataTables_filter {display: none;}
       .dataTables_length {float: none;}
   </style>
@@ -23,11 +24,19 @@
   <h1>Booking Index</h1>
 
   <form id="booking_date">
-    <p>Booking date start: <input type="text" id="booking_date_start"></p>
-    <p>Booking date end: <input type="text" id="booking_date_end"></p>
+    <ul id="booking_date_inputs">
+    <li id="booking_date_input">
+    Filter by booking date:
+    <input type="text" id="booking_date_start" /> to
+    <input type="text" id="booking_date_end" />
+    </li>
+    <li id="booking_date_input">
     <input type="submit" value="Filter" />
+    </li>
+    </ul>
   </form>
 
+  <div id="table_container">
   <table id="booking_table">
     <thead>
       <tr>
@@ -59,6 +68,7 @@
     </tfoot>
     <tbody></tbody>
   </table>
+  </div>
 
   <br />
   <div>
