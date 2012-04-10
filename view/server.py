@@ -113,22 +113,21 @@ def query_sort(columns):
     return 'ORDER BY %s %s LIMIT %s, %s' % (
         sort_col, sort_dir, offset, length)
 
-def query_filter(search_arg):
+def query_filter(booking_date_start, booking_date_end):
     """
     Return a query clause to sort parsed_bookingdate by the given
-    columnFilter datetime value.
+    columnFilter datetime values.
     """
     # XXX this needs subsitution
     clauses = []
     # assume date picker validates
-    if search_arg:
-        (start, end) = search_arg.split('~')
-        if start:
-            start = '%s 00:00:00' % start
-            clauses.append('parsed_bookingdate >= "%s"' % start)
-        if end:
-            end = '%s 23:59:59' % end
-            clauses.append('parsed_bookingdate <= "%s"' % end)
+    if booking_date_start or booking_date_end:
+        if booking_date_start:
+            start = '%s 00:00:00' % booking_date_start
+            clauses.append('parsed_bookingdate >= "%s"' % booking_date_start)
+        if booking_date_end:
+            end = '%s 23:59:59' % booking_date_end
+            clauses.append('parsed_bookingdate <= "%s"' % booking_date_end)
         return ' AND '.join(clauses)
     return None
 
@@ -150,7 +149,9 @@ def data_booking_index():
         'currentstatus '
         'FROM bookings')
     sort_clause = query_sort(sort_columns)
-    filter_clause = query_filter(request.args.get('sSearch_6'))
+    filter_clause = query_filter(
+        request.args.get('booking_date_start'),
+        request.args.get('booking_date_end'))
     if filter_clause:
         query = ' WHERE '.join((query, filter_clause))
     query = ' '.join((query, sort_clause))
@@ -187,7 +188,9 @@ def data_charge_index():
         'JOIN cases ON charges.case_id = cases.rowid '
         'JOIN bookings ON cases.booking_id = bookings.rowid')
     sort_clause = query_sort(sort_columns)
-    filter_clause = query_filter(request.args.get('sSearch_4'))
+    filter_clause = query_filter(
+        request.args.get('booking_date_start'),
+        request.args.get('booking_date_end'))
     if filter_clause:
         query = ' WHERE '.join((query, filter_clause))
     query = ' '.join((query, sort_clause))
