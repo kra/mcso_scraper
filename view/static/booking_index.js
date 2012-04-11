@@ -37,7 +37,7 @@ $(document).ready(function() {
             null, null, null,
         ]});
 
-    $('#booking_date').submit(function(event) {
+    $('#table_filter').submit(function(event) {
         event.preventDefault();
         b_table.fnDraw(); });
     
