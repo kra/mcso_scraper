@@ -1,15 +1,15 @@
-form#booking_date {
+form#table_filter {
   border: 1px solid;
   padding: 1em;
   overflow: auto;
 }
 
-#booking_date_inputs{
+#table_filter_inputs{
   display: inline;
   list-style-type:none;
 }
 
-#booking_date_input{
+#table_filter_input{
   float: left;
 }
 
