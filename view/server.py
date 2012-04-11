@@ -273,20 +273,28 @@ def data_health_booking_index():
         with the most recent in the past.
         """
         (min_date,) = row_ds(
-            g.db.execute('SELECT MIN(updated_on) FROM bookings'))
+            g.db.execute('SELECT MIN(parsed_bookingdate) FROM bookings'))
         min_date = datetime.datetime.strptime(
-            min_date['MIN(updated_on)'], '%Y-%m-%d %H:%M:%S')
+            min_date['MIN(parsed_bookingdate)'], '%Y-%m-%d %H:%M:%S')
         end = periods.next()
         while True:
             start = periods.next()
             if end < min_date:
                 raise StopIteration
-            (out,) = row_ds(g.db.execute(
+            (updated_on,) = row_ds(g.db.execute(
                 'SELECT COUNT(rowid) FROM bookings '
                 'WHERE updated_on>? AND updated_on<?',
                 (start.strftime('%Y-%m-%d %H:%M:%S'),
                  end.strftime('%Y-%m-%d %H:%M:%S'))))
-            out['period'] = start.strftime('%m/%d/%Y')
+            (parsed_bookingdate,) = row_ds(g.db.execute(
+                'SELECT COUNT(rowid) FROM bookings '
+                'WHERE parsed_bookingdate>? AND parsed_bookingdate<?',
+                (start.strftime('%Y-%m-%d %H:%M:%S'),
+                 end.strftime('%Y-%m-%d %H:%M:%S'))))
+            out = {
+                'updated_on_count':updated_on["COUNT(rowid)"],
+                'parsed_bookingdate_count':parsed_bookingdate["COUNT(rowid)"],
+                'period':start.strftime('%m/%d/%Y')}
             yield out
             end = start
 
@@ -296,7 +304,9 @@ def data_health_booking_index():
     # and only spool out that generator.
     all_rows = [w for w in period_healths]
     rows = all_rows[:length]
-    rows = [[row['period'], row['COUNT(rowid)']] for row in rows]
+    rows = [[row['period'],
+             row['updated_on_count'],
+             row['parsed_bookingdate_count']] for row in rows]
     return data_tables_json(
         rows, secho, len(all_rows) + offset, len(all_rows) + offset)
 
