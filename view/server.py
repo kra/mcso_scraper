@@ -92,6 +92,10 @@ def booking_mugshot(mugshotid):
     return helpers.send_from_directory(path, mugshotid)
 
 def query_sort_args(columns):
+    """
+    Return injection-safe (sort_col, sort_dir, offset, length)
+    from given sort columns and request.
+    """
     # single-column sortable only
     # multi-col with _n and iSortingCols
     try:
@@ -111,25 +115,32 @@ def query_sort_args(columns):
     return (sort_col, sort_dir, offset, length)
 
 def query_sort(columns):
+    """
+    Return injection-safe sort clause from given sort columns and request.
+    """
     return 'ORDER BY %s %s LIMIT %s, %s' % query_sort_args(columns)
 
 def query_filter(field, start, end):
     """
-    Return a query clause to sort the given datetime field by the given
+    Return an injection-safe query clause and args
+    to filter the given datetime field by the given
     columnFilter datetime values.
+    Assume field is injection-safe.
     """
-    # XXX this needs subsitution
-    clauses = []
     # assume date picker validates
     if start or end:
+        args = []
+        clauses = []
         if start:
             start = '%s 00:00:00' % start
-            clauses.append('%s >= "%s"' % (field, start))
+            clauses.append('%s >= ?' % field)
+            args.append(start)
         if end:
             end = '%s 23:59:59' % end
-            clauses.append('%s <= "%s"' % (field, end))
-        return ' AND '.join(clauses)
-    return None
+            clauses.append('%s <= ?' % field)
+            args.append(end)
+        return ('WHERE ' + ' AND '.join(clauses), args)
+    return ('', [])
 
 @app.route('/data/booking_index')
 def data_booking_index():
@@ -148,23 +159,23 @@ def data_booking_index():
         'bookingdate, assignedfac, arrestingagency, '
         'currentstatus '
         'FROM bookings')
+    query_args = []
     sort_clause = query_sort(sort_columns)
-    filter_clause = query_filter(
+    (filter_clause, filter_args) = query_filter(
         'parsed_bookingdate',
         request.args.get('booking_date_start'),
         request.args.get('booking_date_end'))
-    if filter_clause:
-        query = ' WHERE '.join((query, filter_clause))
+    query = ' '.join((query, filter_clause))
+    query_args.extend(filter_args)
     query = ' '.join((query, sort_clause))
     count_all = g.db.execute('SELECT COUNT(rowid) FROM bookings').next()[0]
     if filter_clause:
-        count_rows = g.db.execute(
-            ' WHERE '.join(
-                ('SELECT COUNT(rowid) FROM bookings',
-                 filter_clause))).next()[0]
+        count_query = 'SELECT COUNT(rowid) FROM bookings'
+        count_query = ' '.join((count_query, filter_clause))
+        count_rows = g.db.execute(count_query, query_args).next()[0]
     else:
         count_rows = count_all
-    rows = booking_index_rows(g.db.execute(query))
+    rows = booking_index_rows(g.db.execute(query, query_args))
     rows = [[row["name_link"], row["age"], row["swisid"], row["race"],
              row["gender"], row["arrestdate"],
              row["bookingdate"], row["assignedfac"],
@@ -188,25 +199,26 @@ def data_charge_index():
         'FROM charges '
         'JOIN cases ON charges.case_id = cases.rowid '
         'JOIN bookings ON cases.booking_id = bookings.rowid')
+    query_args = []
     sort_clause = query_sort(sort_columns)
-    filter_clause = query_filter(
+    (filter_clause, filter_args) = query_filter(
         'parsed_bookingdate',
         request.args.get('booking_date_start'),
         request.args.get('booking_date_end'))
-    if filter_clause:
-        query = ' WHERE '.join((query, filter_clause))
+    query = ' '.join((query, filter_clause))
+    query_args.extend(filter_args)
     query = ' '.join((query, sort_clause))
     count_all = g.db.execute('SELECT COUNT(rowid) FROM charges').next()[0]
     if filter_clause:
-        count_rows = g.db.execute(
-            ' WHERE '.join(
-                ('SELECT COUNT(charges.rowid) FROM charges '
-                 'JOIN cases ON charges.case_id = cases.rowid '
-                 'JOIN bookings ON cases.booking_id = bookings.rowid',
-                 filter_clause))).next()[0]
+        count_query = (
+            'SELECT COUNT(charges.rowid) FROM charges '
+            'JOIN cases ON charges.case_id = cases.rowid '
+            'JOIN bookings ON cases.booking_id = bookings.rowid')
+        count_query = ' '.join((count_query, filter_clause))
+        count_rows = g.db.execute(count_query, query_args).next()[0]
     else:
         count_rows = count_all
-    rows = charge_index_rows(g.db.execute(query))
+    rows = charge_index_rows(g.db.execute(query, query_args))
     rows = [[row["charge_link"], row["status"], row["bail"],
              row["arrestdate"], row["bookingdate"]]
             for row in rows]
@@ -325,6 +337,6 @@ def index():
     return render_template('index.html')
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0')
+    #app.run(host='0.0.0.0')
     #app.run(host='192.168.56.101')
-    #app.run(debug=True)
+    app.run(debug=True)
