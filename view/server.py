@@ -94,8 +94,6 @@ def booking_mugshot(mugshotid):
 def query_sort_args(columns):
     # single-column sortable only
     # multi-col with _n and iSortingCols
-    # single-column sortable only
-    # multi-col with _n and iSortingCols
     try:
         sort_col = columns[int(request.args.get('iSortCol_0'))]
     except TypeError:
@@ -200,7 +198,6 @@ def data_charge_index():
     query = ' '.join((query, sort_clause))
     count_all = g.db.execute('SELECT COUNT(rowid) FROM charges').next()[0]
     if filter_clause:
-        # XXX must get from bookings too
         count_rows = g.db.execute(
             ' WHERE '.join(
                 ('SELECT COUNT(charges.rowid) FROM charges '
@@ -328,6 +325,6 @@ def index():
     return render_template('index.html')
 
 if __name__ == '__main__':
-    #app.run(host='0.0.0.0')
-    app.run(host='192.168.1.104')
+    app.run(host='0.0.0.0')
+    #app.run(host='192.168.56.101')
     #app.run(debug=True)
