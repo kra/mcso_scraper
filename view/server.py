@@ -95,6 +95,7 @@ def query_sort_args(columns):
     """
     Return injection-safe (sort_col, sort_dir, offset, length)
     from given sort columns and request.
+    Assume column names are injection-safe.
     """
     # single-column sortable only
     # multi-col with _n and iSortingCols
