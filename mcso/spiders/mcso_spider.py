@@ -1,10 +1,13 @@
+import common
+
 from scrapy.spider import BaseSpider
 from scrapy.selector import HtmlXPathSelector
-from scrapy.item import Item, Field
 from scrapy.http import Request, FormRequest
 from scrapy.conf import settings
 import scrapy.log
+import scrapy.item
 
+import socket
 from lxml import etree
 import urllib, urlparse
 import StringIO
@@ -19,33 +22,47 @@ def booking_mugshot_dir(booking_id):
     return '/'.join((ones_digit, tens_digit))
 
 
+class ScrapyBase(object):
+    def log(self, msg, level):
+        super(ScrapyBase, self).log(msg, level)
+        if level == scrapy.log.ERROR:
+            common.log.send_mail(
+                msg,
+                'mcso notification from %s: %s' %
+                (socket.gethostname(), msg[0:50]))
+
+
+class Item(ScrapyBase, scrapy.item.Item):
+    pass
+
+
 class InmateItem(Item):
-    url = Field()
-    mugshot = Field()
-    mugshot_url = Field()
-    swisid = Field()
-    name = Field()
-    age = Field()
-    gender = Field()
-    race = Field()
-    height = Field()
-    weight = Field()
-    hair = Field()
-    eyes = Field()
-    arrestingagency = Field()
-    arrestdate = Field()
-    #parsed_arrestdate = Field()
-    bookingdate = Field()
-    #parsed_bookingdate = Field()
-    currentstatus = Field()
-    assignedfac = Field()
-    projreldate = Field()
-    #parsed_reldate = Field()
-    cases = Field()
-    releasedate = Field()
-    #parsed_releasedate = Field()
-    releasereason = Field()
-    booking_id = Field()
+    url = scrapy.item.Field()
+    mugshot = scrapy.item.Field()
+    mugshot_url = scrapy.item.Field()
+    swisid = scrapy.item.Field()
+    name = scrapy.item.Field()
+    age = scrapy.item.Field()
+    gender = scrapy.item.Field()
+    race = scrapy.item.Field()
+    height = scrapy.item.Field()
+    weight = scrapy.item.Field()
+    hair = scrapy.item.Field()
+    eyes = scrapy.item.Field()
+    arrestingagency = scrapy.item.Field()
+    arrestdate = scrapy.item.Field()
+    #parsed_arrestdate = scrapy.item.Field()
+    bookingdate = scrapy.item.Field()
+    #parsed_bookingdate = scrapy.item.Field()
+    currentstatus = scrapy.item.Field()
+    assignedfac = scrapy.item.Field()
+    projreldate = scrapy.item.Field()
+    #parsed_reldate = scrapy.item.Field()
+    cases = scrapy.item.Field()
+    releasedate = scrapy.item.Field()
+    #parsed_releasedate = scrapy.item.Field()
+    releasereason = scrapy.item.Field()
+    booking_id = scrapy.item.Field()
 
     def validate(self):
         for key in ('swisid', 'bookingdate'):
@@ -96,16 +113,16 @@ class InmateItem(Item):
 
 
 class CaseItem(Item):
-    court_case_number = Field()
-    da_case_number = Field()
-    citation_number = Field()
-    charges = Field()
+    court_case_number = scrapy.item.Field()
+    da_case_number = scrapy.item.Field()
+    citation_number = scrapy.item.Field()
+    charges = scrapy.item.Field()
 
 
 class ChargeItem(Item):
-    charge = Field()
-    bail = Field()
-    status = Field()
+    charge = scrapy.item.Field()
+    bail = scrapy.item.Field()
+    status = scrapy.item.Field()
 
     #XXX properties
     def parsed_bail(self, field):
@@ -121,7 +138,7 @@ class ChargeItem(Item):
         return field.replace('$', '').replace(',', '')
 
 
-class McsoSpider(BaseSpider):
+class McsoSpider(ScrapyBase, BaseSpider):
     IN_CUSTODY = 'IN_CUSTODY'
     LAST_7_DAYS = 'LAST_7_DAYS'
     name = "mcso"

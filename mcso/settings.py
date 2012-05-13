@@ -5,6 +5,9 @@ BOT_VERSION = '1.0'
 
 #LOG_LEVEL = 'INFO'
 LOG_LEVEL = 'DEBUG'
+NOTIFY_SENDER = ''
+NOTIFY_RECIPIENTS = []
+
 SPIDER_MODULES = ['mcso.spiders']
 NEWSPIDER_MODULE = 'mcso.spiders'
 DEFAULT_ITEM_CLASS = 'mcso.items.McsoItem'

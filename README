@@ -5,6 +5,7 @@ requirements:
     python 2.x
     scrapy
     flask
+    local mail server
 
 set up storage the first time:
 
