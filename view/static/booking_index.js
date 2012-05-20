@@ -11,6 +11,10 @@ $(document).ready(function() {
     var b_table = $('#booking_table').dataTable({
         "bProcessing": true,
         "bServerSide": true,
+        "sDom": 'T<"clear">lfrtip',
+        "oTableTools": {
+            "sSwfPath":
+            "/static/TableTools-2.0.3/media/swf/copy_csv_xls_pdf.swf" },
         "sAjaxSource": booking_index_href,
         "fnServerParams": function ( aoData ) {
             aoData.push(
