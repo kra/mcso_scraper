@@ -12,18 +12,20 @@ import urllib
 
 import mcso.spiders.mcso_spider
 from scrapy.conf import settings
-import users
+import common
 
 app = Flask(__name__)
 login_manager = LoginManager()
-# XXX get from settings
 app.secret_key = settings['SECRET_KEY']
 login_manager.setup_app(app)
 login_manager.login_view = "login"
 
 @login_manager.user_loader
 def load_user(id):
-    return users.get_user_id(int(id))
+    db = connect_db()
+    user = common.users.get_user_id(db, int(id))
+    db.close()
+    return user
 
 # DB setup stuff
 
@@ -138,9 +140,9 @@ def login():
         username = request.form["username"]
         password = request.form["password"]
         remember = request.form.get("remember", "no") == "yes"
-        user = users.get_user_username(username)
+        user = common.users.get_user_username(g.db, username)
         if (user
-            and users.auth_user(user, password)
+            and common.users.auth_user(user, password)
             and login_user(user, remember=remember)):
             flash("Logged in.")
             return redirect(request.args.get("next") or url_for("index"))

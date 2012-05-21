@@ -68,6 +68,15 @@ def update_schema_2(conn):
     conn.execute('UPDATE config SET value=2 WHERE name="schema"')
     conn.commit()
 
+def update_schema_3(conn):
+    conn.execute(
+        'CREATE TABLE users '
+        '(name TEXT UNIQUE, password TEXT, active INTEGER)')
+
+    # update config table to reflect current schema version
+    conn.execute('UPDATE config SET value=3 WHERE name="schema"')
+    conn.commit()
+
 def get_schema(conn):
     ((schema,),) = conn.execute('SELECT value FROM config WHERE name="schema"')
     return schema
@@ -83,6 +92,9 @@ def update_db(conn):
     if get_schema(conn) < 2:
         print 'updating to schema 2'
         update_schema_2(conn)
+    if get_schema(conn) < 3:
+        print 'updating to schema 3'
+        update_schema_3(conn)
 
 
 if __name__ == '__main__':
