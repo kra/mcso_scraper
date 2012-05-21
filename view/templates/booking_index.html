@@ -1,10 +1,8 @@
-<!doctype html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>Booking Index</title>
-</head>
-<body>
+{% extends "layout.html" %}
+
+{% block head %}
+{{ super() }}
+<title>Booking Index</title>
   <script src="/static/jquery-1.6.4.js"></script>
   <script src="/static/jquery-ui-1.8.17.custom.min.js"></script>
   <script src="/static/jquery.datePicker.js"></script>
@@ -23,7 +21,9 @@
       .dataTables_filter {display: none;}
       .dataTables_length {float: none;}
   </style>
+{% endblock %}
 
+{% block content %}
   <h1>Booking Index</h1>
 
   <form id="table_filter">
@@ -72,11 +72,4 @@
     <tbody></tbody>
   </table>
   </div>
-
-  <br />
-  <div>
-    <a href="/">Mental Health Association of Portland Plan B Thing</a>
-  </div>
-
-</body>
-</html>
+{% endblock %}

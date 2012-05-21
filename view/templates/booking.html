@@ -1,25 +1,19 @@
-<!doctype html>
-<html>
-<head>
-  <meta charset="utf-8">
+{% extends "layout.html" %}
+
+{% block head %}
+{{ super() }}
   <script src="/static/jquery-1.6.4.js"></script>
   <script src="/static/booking.js"></script>
   <style type="text/css" title="currentStyle">
       @import "/static/booking.css";
   </style>
-</head>
-<body>
+{% endblock %}
 
+{% block content %}
   <div id="booking_div"></div>
 
   <br />
   <div>
     <a href="/booking_index">Up to Index</a>
   </div>
-
-  <div>
-    <a href="/">Mental Health Association of Portland Plan B Thing</a>
-  </div>
-
-</body>
-</html>
+{% endblock %}

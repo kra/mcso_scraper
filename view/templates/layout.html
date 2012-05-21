@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+  <head>
+    {% block head %}
+    <meta charset="utf-8">
+    {% endblock %}
+  </head>
+<body>
+  <div id="messges">
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <ul class="flashes">
+      {% for message in messages %}
+        <li>{{ message }}</li>
+      {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+  </div>
+  <div id="content">{% block content %}{% endblock %}</div>
+  <br />
+  <div id="footer">
+    {% block footer %}
+    <a href="/">Mental Health Association of Portland Plan B Thing</a>
+    {% endblock %}
+  </div>
+</body>
+</html>
+
