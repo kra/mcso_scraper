@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 
-from flask import Flask, g, render_template, helpers, request, abort
+from flask import Flask, flash, g, render_template, helpers, request, abort
+from flask import redirect, url_for
+from flaskext.login import LoginManager, login_required
+from flaskext.login import login_user, logout_user, current_user
+
 import sqlite3
 import json
 import datetime
@@ -8,8 +12,20 @@ import urllib
 
 import mcso.spiders.mcso_spider
 from scrapy.conf import settings
+import users
 
 app = Flask(__name__)
+login_manager = LoginManager()
+# XXX get from settings
+app.secret_key = settings['SECRET_KEY']
+login_manager.setup_app(app)
+login_manager.login_view = "login"
+
+@login_manager.user_loader
+def load_user(id):
+    return users.get_user_id(int(id))
+
+# DB setup stuff
 
 def connect_db():
     conn = sqlite3.connect(settings['SQLITE_FILENAME'])
@@ -24,6 +40,11 @@ def before_request():
 def teardown_request(exception):
     if hasattr(g, 'db'):
         g.db.close()
+
+# helpers
+
+def render(template, *args, **kwargs):
+    return render_template(template, current_user=current_user, *args, **kwargs)
 
 def row_ds(cur):
     def row_to_dict(row):
@@ -56,40 +77,6 @@ def charge_index_rows(cur):
             "<a href='/booking?booking=" + str(row['rowid']) + "'>" +
             row['charge'] + '</a>')
     return index_rows
-
-@app.route('/data/booking/<bookingid>')
-def data_booking(bookingid):
-    # bookingid = urllib.unquote(bookingid)
-    (booking_row,) = row_ds(g.db.execute(
-        'SELECT rowid, * FROM bookings WHERE rowid=?', (bookingid,)))
-    # XXX should use InmateItem for this
-    # booking_row['mugshot_filename'] = (
-    #     mcso.spiders.mcso_spider.booking_mugshot_path(
-    #         booking_row['rowid']))
-    booking_row['mugshot_path'] = booking_row['rowid']
-    # XXX should be a model for this kind of thing
-    case_rows = row_ds(g.db.execute(
-            'SELECT rowid, * FROM cases WHERE booking_id=?',
-            [booking_row['rowid']]))
-    for case_row in case_rows:
-        charge_rows = row_ds(g.db.execute(
-                'SELECT rowid, * FROM charges WHERE case_id=?',
-                [case_row['rowid']]))
-        case_row['charges'] = charge_rows
-    booking_row['cases'] = case_rows
-
-    return json.dumps(booking_row)
-
-@app.route('/booking')
-def booking():
-    return render_template('booking.html')
-
-# XXX ideally static files are served by a server in front of us
-@app.route('/data/mugshots/<mugshotid>')
-def booking_mugshot(mugshotid):
-    path = mcso.spiders.mcso_spider.booking_mugshot_dir(mugshotid)
-    path = '/'.join((settings['MUGSHOT_DIRNAME'], path))
-    return helpers.send_from_directory(path, mugshotid)
 
 def query_sort_args(columns):
     """
@@ -142,6 +129,64 @@ def query_filter(field, start, end):
             args.append(end)
         return ('WHERE ' + ' AND '.join(clauses), args)
     return ('', [])
+
+# URL handlers
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST" and "username" in request.form:
+        username = request.form["username"]
+        password = request.form["password"]
+        remember = request.form.get("remember", "no") == "yes"
+        user = users.get_user_username(username)
+        if (user
+            and users.auth_user(user, password)
+            and login_user(user, remember=remember)):
+            flash("Logged in.")
+            return redirect(request.args.get("next") or url_for("index"))
+        else:
+            flash("Could not log in.")
+    return render_template("login.html")
+
+@app.route("/logout")
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for("index"))
+
+@app.route('/data/booking/<bookingid>')
+def data_booking(bookingid):
+    # bookingid = urllib.unquote(bookingid)
+    (booking_row,) = row_ds(g.db.execute(
+        'SELECT rowid, * FROM bookings WHERE rowid=?', (bookingid,)))
+    # XXX should use InmateItem for this
+    # booking_row['mugshot_filename'] = (
+    #     mcso.spiders.mcso_spider.booking_mugshot_path(
+    #         booking_row['rowid']))
+    booking_row['mugshot_path'] = booking_row['rowid']
+    # XXX should be a model for this kind of thing
+    case_rows = row_ds(g.db.execute(
+            'SELECT rowid, * FROM cases WHERE booking_id=?',
+            [booking_row['rowid']]))
+    for case_row in case_rows:
+        charge_rows = row_ds(g.db.execute(
+                'SELECT rowid, * FROM charges WHERE case_id=?',
+                [case_row['rowid']]))
+        case_row['charges'] = charge_rows
+    booking_row['cases'] = case_rows
+
+    return json.dumps(booking_row)
+
+@app.route('/booking')
+def booking():
+    return render_template('booking.html')
+
+# XXX ideally static files are served by a server in front of us
+@app.route('/data/mugshots/<mugshotid>')
+def booking_mugshot(mugshotid):
+    path = mcso.spiders.mcso_spider.booking_mugshot_dir(mugshotid)
+    path = '/'.join((settings['MUGSHOT_DIRNAME'], path))
+    return helpers.send_from_directory(path, mugshotid)
 
 @app.route('/data/booking_index')
 def data_booking_index():
@@ -332,10 +377,16 @@ def charge_index():
 def health_booking_index():
     return render_template('health_booking_index.html')
 
-
 @app.route('/')
 def index():
+    return render('index.html')
+
+@app.route("/foo")
+@login_required
+def foo():
     return render_template('index.html')
+
+# main
 
 if __name__ == '__main__':
     #app.run(host='0.0.0.0')

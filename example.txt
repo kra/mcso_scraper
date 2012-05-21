@@ -16,6 +16,8 @@ pip install w3lib
 pip install lxml
 pip install scrapy
 pip install flask
+pip install flask-login
+pip install py-bcrypt
 python setup/setup.py
 # hackish workaround for using nobody instead of a dedicated user
 find data -exec chown nobody {} \;

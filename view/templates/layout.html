@@ -17,6 +17,13 @@
     {% endif %}
   {% endwith %}
   </div>
+  <div id="header">
+    {% if current_user.is_authenticated() %}
+    Hello, {{ current_user.name }}. <a href="/logout">Logout</a>.
+    {% else %}
+    <a href="/login">Login</a>.
+    {% endif %}
+  </div>
   <div id="content">{% block content %}{% endblock %}</div>
   <br />
   <div id="footer">

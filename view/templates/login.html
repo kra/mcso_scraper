@@ -1,0 +1,22 @@
+{% extends "layout.html" %}
+
+{% block head %}
+{{ super() }}
+<title>Login</title>
+{% endblock %}
+
+{% block content %}
+  <h1>Login</h1>
+  <form action="" method="post">
+    <dl>
+      <dt>Username:</dt>
+      <dd><input type="text" name="username"
+                 value="{{ request.form.username }}"></dd>
+      <dt>Password:</dt>
+      <dd><input type="text" name="password"</dd>
+      <dt>Remember Me:</dt>
+      <dd><input type="checkbox" name="remember" value="yes"></dd>
+      <dd><input type="submit" value="Login"></dd>
+    </dl>
+  </form>
+{% endblock %}

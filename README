@@ -5,6 +5,8 @@ requirements:
     python 2.x
     scrapy
     flask
+    flask-login
+    py-bcrypt
     local mail server
 
 set up storage the first time:
