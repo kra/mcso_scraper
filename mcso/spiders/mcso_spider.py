@@ -219,6 +219,14 @@ class McsoSpider(ScrapyBase, BaseSpider):
             # this might be better handled by the pipeline validator
             self.log('incomplete page %s, try again later' % response.url,
                      level=scrapy.log.WARNING)
+            # XXX raising the Twisted TimeoutError should make the retryer
+            #     retry it, but isn't?  Otherwise, return a Request, but
+            #     dups aren't being retried?  Workaround, just scrape more.
+            #raise UserTimeoutError
+            #return Request(
+            #   response.url,
+            #    meta={'attempts':response.meta.get('attempts', 0) + 1},
+            #    callback=self.parse_inmate)
             return
         # XXX can't get scrapy's xpath to do me
         # XXX should switch earlier
