@@ -2,8 +2,8 @@
 
 from flask import Flask, flash, g, render_template, helpers, request, abort
 from flask import redirect, url_for
-from flaskext.login import LoginManager, login_required
-from flaskext.login import login_user, logout_user, current_user
+from flask.ext.login import LoginManager, login_required
+from flask.ext.login import login_user, logout_user, current_user
 
 import sqlite3
 import json
@@ -393,4 +393,5 @@ def foo():
 if __name__ == '__main__':
     #app.run(host='0.0.0.0')
     #app.run(host='192.168.56.101')
-    app.run(debug=True)
+    app.run(host='0.0.0.0', debug=True)
+    #app.run(host='0.0.0.0', port=80, debug=True)
