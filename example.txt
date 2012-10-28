@@ -3,10 +3,13 @@ To set up and run on a current vanilla mumblemumble Ubuntu box:
 This setup assumes you want to scrape daily, and the scraper will complete
 daily.  A real scheduler like supervisord is safer, but probably unecessary.
 
-apt-get install python-dev
-apt-get install libxml2-dev libxslt-dev
-cd /usr/local/share
-git clone https://kra@github.com/kra/mcso_scraper.git
+apt-get install python-dev (yum install python-devel)
+apt-get install libxml2-dev libxslt-dev 
+  (yum install libxml2-devel libxslt-devel)
+(on centos, install sudo, gcc, pyOpenSSL, openssl-devel, epel, python-pip,
+    pip install virtualenv)
+cd /opt/mhap
+git clone git clone git@github.com:kra/mcso_scraper.git
 cd mcso_scraper
 virtualenv env
 source env/bin/activate
@@ -18,26 +21,26 @@ pip install scrapy
 pip install flask
 pip install flask-login
 pip install py-bcrypt
-python setup/setup.py
+python setup/setup.py boot
 # hackish workaround for using nobody instead of a dedicated user
 find data -exec chown nobody {} \;
 
-/usr/local/share/mcso_scraper/run.sh (executable):
+/opt/mhap/mcso_scraper/run.sh (executable):
 
-#!/bin/bash                                                                     
-DIR=`dirname $0`                                                                
+#!/bin/bash
+DIR=`dirname $0`
 cd $DIR && source env/bin/activate && scrapy crawl mcso
 
-/usr/local/share/mcso_scraper/run_viewer.sh (executable):
+/opt/mhap/mcso_scraper/run_viewer.sh (executable):
 
-#!/bin/bash                                                                     
-DIR=`dirname $0`                                                                
-cd $DIR && source env/bin/activate && env PYTHONPATH=. view/server.py           
+#!/bin/bash
+DIR=`dirname $0`
+cd $DIR && source env/bin/activate && env PYTHONPATH=. view/server.py
 
 /etc/cron.daily/mcso_scraper (executable):
 
-#!/bin/bash                                                                     
-sudo -u nobody /usr/local/share/mcso_scraper/run.sh >>/var/log/mcso_scraper.log 2>>/var/log/mcso_scraper.log
+#!/bin/bash
+sudo -u nobody /opt/mhap/mcso_scraper/run.sh >>/var/log/mcso_scraper.log 2>>/var/log/mcso_scraper.log
 
 /etc/logrotate.d/mcso_scraper:
 
@@ -55,5 +58,5 @@ sudo -u nobody /usr/local/share/mcso_scraper/run.sh >>/var/log/mcso_scraper.log 
 # XXX a real init script that does this with start/stop
 
 #!/bin/bash
-cd /usr/local/share/mcso_scraper
-sudo -u nobody /usr/local/share/mcso_scraper/run_viewer.sh
+cd /opt/mhap/mcso_scraper
+sudo -u nobody /opt/mhap/mcso_scraper/run_viewer.sh
