@@ -28,7 +28,6 @@ view:
     view:
     visit localhost:5000/ in web browser
 
-curl original:
+user management:
 
-    curl http://www.mcso.us/PAID/Default.aspx -d @data -A "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_5_8) AppleWebKit/535.1 (KHTML, like Gecko) Chrome/13.0.782.220 Safari/535.1"
-
+    scripts/add_user.py deactivate_user.py show_users.py
