@@ -147,7 +147,7 @@ def login():
             flash("Logged in.")
             return redirect(request.args.get("next") or url_for("index"))
         else:
-            flash("Could not log in.")
+            flash("Could not log in.", category="error")
     return render_template("login.html")
 
 @app.route("/logout")
