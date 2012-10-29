@@ -1,4 +1,4 @@
-from flaskext.login import UserMixin
+from flask.ext.login import UserMixin
 
 import bcrypt
 
