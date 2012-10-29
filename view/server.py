@@ -157,6 +157,7 @@ def logout():
     return redirect(url_for("index"))
 
 @app.route('/data/booking/<bookingid>')
+@login_required
 def data_booking(bookingid):
     # bookingid = urllib.unquote(bookingid)
     (booking_row,) = row_ds(g.db.execute(
@@ -180,17 +181,20 @@ def data_booking(bookingid):
     return json.dumps(booking_row)
 
 @app.route('/booking')
+@login_required
 def booking():
     return render_template('booking.html')
 
 # XXX ideally static files are served by a server in front of us
 @app.route('/data/mugshots/<mugshotid>')
+@login_required
 def booking_mugshot(mugshotid):
     path = mcso.spiders.mcso_spider.booking_mugshot_dir(mugshotid)
     path = '/'.join((settings['MUGSHOT_DIRNAME'], path))
     return helpers.send_from_directory(path, mugshotid)
 
 @app.route('/data/booking_index')
+@login_required
 def data_booking_index():
     try:
         secho = int(request.args.get('sEcho'))
@@ -232,6 +236,7 @@ def data_booking_index():
     return data_tables_json(rows, secho, count_all, count_rows)
 
 @app.route('/data/charge_index')
+@login_required
 def data_charge_index():
     try:
         secho = int(request.args.get('sEcho'))
@@ -273,6 +278,7 @@ def data_charge_index():
     return data_tables_json(rows, secho, count_all, count_rows)
 
 @app.route('/data/health/booking_index')
+@login_required
 def data_health_booking_index():
     period = request.args.get('period')
     if not period:
@@ -368,25 +374,24 @@ def data_health_booking_index():
         rows, secho, len(all_rows) + offset, len(all_rows) + offset)
 
 @app.route('/booking_index')
+@login_required
 def booking_index():
     return render_template('booking_index.html')
 
 @app.route('/charge_index')
+@login_required
 def charge_index():
     return render_template('charge_index.html')
 
 @app.route('/health/booking_index')
+@login_required
 def health_booking_index():
     return render_template('health_booking_index.html')
 
 @app.route('/')
+@login_required
 def index():
     return render('index.html')
-
-@app.route("/foo")
-@login_required
-def foo():
-    return render_template('index.html')
 
 # main
 
