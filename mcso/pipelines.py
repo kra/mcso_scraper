@@ -1,14 +1,12 @@
 from scrapy.conf import settings
-import sqlite3
 import os
+import common
+
 
 class McsoPipeline(object):
 
     def __init__(self):
-        self.conn = self.get_conn()
-
-    def get_conn(self):
-        return sqlite3.connect(settings['SQLITE_FILENAME'])
+        self.conn = common.db.get_conn()
 
     def process_item(self, item, spider):
         item.validate()
@@ -42,22 +40,22 @@ class McsoPipeline(object):
              item.parsed_date(item.get('releasedate')),
              item.get('releasereason'),
              item.get('mugshot_url')))
-        # primary key is swisid + bookingdate
-        ((booking_id,),) = cursor.execute(
-            'SELECT rowid FROM bookings WHERE swisid=? AND bookingdate=?',
-            (item['swisid'], item['bookingdate']))
+        # primary key is swisid + arrestdate
+        ((row_id,),) = cursor.execute(
+            'SELECT rowid FROM bookings WHERE swisid=? AND arrestdate=?',
+            (item['swisid'], item['arrestdate']))
         # delete any existing associated rows
         cursor.execute(
             'DELETE FROM charges '
             'WHERE case_id IN '
-            '(SELECT rowid FROM cases WHERE booking_id=?)', (booking_id,))
+            '(SELECT rowid FROM cases WHERE booking_id=?)', (row_id,))
         cursor.execute(
-            'DELETE FROM cases WHERE booking_id=?', (booking_id,))
+            'DELETE FROM cases WHERE booking_id=?', (row_id,))
         # add or re-add new cases, charges
         for case in item.get('cases'):
             cursor.execute(
                 'INSERT INTO cases VALUES (?, ?, ?, ?)',
-                (booking_id,
+                (row_id,
                  case.get('court_case_number'),
                  case.get('da_case_number'),
                  case.get('citation_number')))
@@ -69,7 +67,7 @@ class McsoPipeline(object):
                      charge.get('bail'), charge.parsed_bail(charge.get('bail')),
                      charge.get('status')))
         self.conn.commit()
-        item['booking_id'] = booking_id
+        item['booking_id'] = row_id
         self.write_mugshot(item)
         return item
 

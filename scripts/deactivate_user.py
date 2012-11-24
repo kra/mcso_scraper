@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 
-import sqlite3
 import sys
 
 from scrapy.conf import settings
-#from common import users
+import common
 
 def deactivate_user(conn, username):
     conn.execute(
@@ -18,6 +17,6 @@ if __name__ == '__main__':
     except ValueError:
         print 'usage: deactivate_user username'
         sys.exit(1)
-    conn = sqlite3.connect(settings['SQLITE_FILENAME'])
+    conn = common.db.get_conn()
 
     deactivate_user(conn, username)

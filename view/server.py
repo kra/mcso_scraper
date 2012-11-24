@@ -5,7 +5,6 @@ from flask import redirect, url_for
 from flask.ext.login import LoginManager, login_required
 from flask.ext.login import login_user, logout_user, current_user
 
-import sqlite3
 import json
 import datetime
 import urllib
@@ -22,21 +21,17 @@ login_manager.login_view = "login"
 
 @login_manager.user_loader
 def load_user(id):
-    db = connect_db()
-    user = common.users.get_user_id(db, int(id))
-    db.close()
+    # XXX do we need a seprate conn?
+    conn = common.db.get_conn()
+    user = common.users.get_user_id(conn, int(id))
+    conn.close()
     return user
 
 # DB setup stuff
 
-def connect_db():
-    conn = sqlite3.connect(settings['SQLITE_FILENAME'])
-    conn.row_factory = sqlite3.Row
-    return conn
-
 @app.before_request
 def before_request():
-    g.db = connect_db()
+    g.db = common.db.get_conn()
 
 @app.teardown_request
 def teardown_request(exception):
@@ -48,11 +43,6 @@ def teardown_request(exception):
 def render(template, *args, **kwargs):
     return render_template(template, current_user=current_user, *args, **kwargs)
 
-def row_ds(cur):
-    def row_to_dict(row):
-        return dict([(k, row[k]) for k in row.keys()])
-    return [row_to_dict(row) for row in cur]
-
 def data_tables_json(items, secho, count_all, count_rows):
     """ return a JSON structure suitable for display by a DataTable """
     return json.dumps(
@@ -62,7 +52,7 @@ def data_tables_json(items, secho, count_all, count_rows):
          "aaData": items})
 
 def booking_index_rows(cur):
-    index_rows = row_ds(cur)
+    index_rows = common.db.row_ds(cur)
     # XXX should do this in the view, or maybe InmateItem
     for row in index_rows:
         row['name_link'] = (
@@ -71,7 +61,7 @@ def booking_index_rows(cur):
     return index_rows
 
 def charge_index_rows(cur):
-    index_rows = row_ds(cur)
+    index_rows = common.db.row_ds(cur)
     # XXX should do this in the view, or maybe InmateItem
     for row in index_rows:
         # XXX should use InmateItem
@@ -160,19 +150,19 @@ def logout():
 @login_required
 def data_booking(bookingid):
     # bookingid = urllib.unquote(bookingid)
-    (booking_row,) = row_ds(g.db.execute(
-        'SELECT rowid, * FROM bookings WHERE rowid=?', (bookingid,)))
+    (booking_row,) = common.db.row_ds(g.db.execute(
+            'SELECT rowid, * FROM bookings WHERE rowid=?', (bookingid,)))
     # XXX should use InmateItem for this
     # booking_row['mugshot_filename'] = (
     #     mcso.spiders.mcso_spider.booking_mugshot_path(
     #         booking_row['rowid']))
     booking_row['mugshot_path'] = booking_row['rowid']
     # XXX should be a model for this kind of thing
-    case_rows = row_ds(g.db.execute(
+    case_rows = common.db.row_ds(g.db.execute(
             'SELECT rowid, * FROM cases WHERE booking_id=?',
             [booking_row['rowid']]))
     for case_row in case_rows:
-        charge_rows = row_ds(g.db.execute(
+        charge_rows = common.db.row_ds(g.db.execute(
                 'SELECT rowid, * FROM charges WHERE case_id=?',
                 [case_row['rowid']]))
         case_row['charges'] = charge_rows
@@ -335,7 +325,7 @@ def data_health_booking_index():
         Yield counts of bookings in preceeding period intervals, starting
         with the most recent in the past.
         """
-        (min_date,) = row_ds(
+        (min_date,) = common.db.row_ds(
             g.db.execute('SELECT MIN(parsed_bookingdate) FROM bookings'))
         min_date = datetime.datetime.strptime(
             min_date['MIN(parsed_bookingdate)'], '%Y-%m-%d %H:%M:%S')
@@ -344,12 +334,12 @@ def data_health_booking_index():
             start = periods.next()
             if end < min_date:
                 raise StopIteration
-            (updated_on,) = row_ds(g.db.execute(
+            (updated_on,) = common.db.row_ds(g.db.execute(
                 'SELECT COUNT(rowid) FROM bookings '
                 'WHERE updated_on>? AND updated_on<?',
                 (start.strftime('%Y-%m-%d %H:%M:%S'),
                  end.strftime('%Y-%m-%d %H:%M:%S'))))
-            (parsed_bookingdate,) = row_ds(g.db.execute(
+            (parsed_bookingdate,) = common.db.row_ds(g.db.execute(
                 'SELECT COUNT(rowid) FROM bookings '
                 'WHERE parsed_bookingdate>? AND parsed_bookingdate<?',
                 (start.strftime('%Y-%m-%d %H:%M:%S'),

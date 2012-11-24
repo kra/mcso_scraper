@@ -1,17 +1,16 @@
+#!/usr/bin/env python
 """
 Set up or update storage.
 Usage:
   setup.py boot
   setup.py
 """
-import sqlite3
 import os
 import string
+import common
 
 from scrapy.conf import settings
 
-def get_conn():
-    return sqlite3.connect(settings['SQLITE_FILENAME'])
 
 def setup_fs():
     # partition by prefix of booking_id, which starts with swisid,
@@ -77,6 +76,13 @@ def update_schema_3(conn):
     conn.execute('UPDATE config SET value=3 WHERE name="schema"')
     conn.commit()
 
+# def update_schema_4(conn):
+#     # unique index as well as primary key to preserve rowid on replace
+#     conn.execute('CREATE UNIQUE INDEX idx_u ON bookings (swisid, arrestdate)')
+#     # update config table to reflect current schema version
+#     conn.execute('UPDATE config SET value=4 WHERE name="schema"')
+#     conn.commit()
+
 def get_schema(conn):
     ((schema,),) = conn.execute('SELECT value FROM config WHERE name="schema"')
     return schema
@@ -95,11 +101,14 @@ def update_db(conn):
     if get_schema(conn) < 3:
         print 'updating to schema 3'
         update_schema_3(conn)
+    # if get_schema(conn) < 4:
+    #     print 'updating to schema 4'
+    #     update_schema_4(conn)
 
 
 if __name__ == '__main__':
     import sys
-    conn = get_conn()
+    conn = common.db.get_conn()
     if sys.argv[-1] == 'boot':
         setup_fs()
         setup_db(conn)

@@ -1,15 +1,14 @@
 #!/usr/bin/env python
 
-import sqlite3
 import sys
 
 from scrapy.conf import settings
-from common import users
+import common
 
 def add_user(conn, username, password):
     conn.execute(
         'INSERT INTO users (name, password, active) VALUES (?, ?, 1)',
-        (username, users.password_create(password)))
+        (username, common.users.password_create(password)))
     conn.commit()
 
 if __name__ == '__main__':
@@ -18,6 +17,5 @@ if __name__ == '__main__':
     except ValueError:
         print 'usage: add_user username password'
         sys.exit(1)
-    conn = sqlite3.connect(settings['SQLITE_FILENAME'])
-
+    conn = common.db.get_conn()
     add_user(conn, username, password)

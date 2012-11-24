@@ -1,16 +1,14 @@
 #!/usr/bin/env python
 
-import sqlite3
 import sys
 
 from scrapy.conf import settings
-from common import users
+import common
 
 def show_users(conn):
     for (name, active) in conn.execute('SELECT name, active FROM users'):
         print name, 'active' if active else 'inactive'
 
 if __name__ == '__main__':
-    conn = sqlite3.connect(settings['SQLITE_FILENAME'])
-
+    conn = common.db.get_conn()
     show_users(conn)
