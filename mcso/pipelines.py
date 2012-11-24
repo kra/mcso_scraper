@@ -54,7 +54,10 @@ class McsoPipeline(object):
         # add or re-add new cases, charges
         for case in item.get('cases'):
             cursor.execute(
-                'INSERT INTO cases VALUES (?, ?, ?, ?)',
+                'INSERT INTO cases '
+                '(booking_id, court_case_number, da_case_number, '
+                'citation_number) '
+                'VALUES (?, ?, ?, ?)',
                 (row_id,
                  case.get('court_case_number'),
                  case.get('da_case_number'),
@@ -62,7 +65,9 @@ class McsoPipeline(object):
             case_id = cursor.lastrowid
             for charge in case.get('charges', []):
                 cursor.execute(
-                    'INSERT INTO charges VALUES (?, ?, ?, ?, ?)',
+                    'INSERT INTO charges '
+                    '(case_id, charge, bail, parsed_bail, status) '
+                    'VALUES (?, ?, ?, ?, ?)',
                     (case_id, charge.get('charge'),
                      charge.get('bail'), charge.parsed_bail(charge.get('bail')),
                      charge.get('status')))
