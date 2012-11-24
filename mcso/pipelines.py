@@ -12,38 +12,85 @@ class McsoPipeline(object):
         item.validate()
         cursor = self.conn.cursor()
         # create/replace new booking
-        cursor.execute(
-            'REPLACE INTO bookings '
-            '(url, swisid, name, age, gender, race, '
-            'height, weight, hair, eyes, arrestingagency, '
-            'arrestdate, parsed_arrestdate, '
-            'bookingdate, parsed_bookingdate, currentstatus, assignedfac, '
-            'projreldate, parsed_projreldate, releasedate, parsed_releasedate, '
-            'releasereason, mugshot_url) '
-            'VALUES '
-            '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '
-            '?, ?, ?, ?, ?)',
-            (item.get('url'), item.get('swisid'), item.get('name'),
-             item.get('age'),
-             item.get('gender'), item.get('race'), item.get('height'),
-             item.get('weight'),
-             item.get('hair'), item.get('eyes'), item.get('arrestingagency'),
-             item.get('arrestdate'),
-             item.parsed_date(item.get('arrestdate')),
-             item.get('bookingdate'),
-             item.parsed_date(item.get('bookingdate')),
-             item.get('currentstatus'),
-             item.get('assignedfac'),
-             item.get('projreldate'),
-             item.parsed_date(item.get('projreldate')),
-             item.get('releasedate'),
-             item.parsed_date(item.get('releasedate')),
-             item.get('releasereason'),
-             item.get('mugshot_url')))
-        # primary key is swisid + arrestdate
-        ((row_id,),) = cursor.execute(
+        # XXX replace into should keep the rowid since we have a unique and
+        #     primary, but isn't?  So use update/insert.
+        rows = common.db.row_ds(cursor.execute(
             'SELECT rowid FROM bookings WHERE swisid=? AND arrestdate=?',
-            (item['swisid'], item['arrestdate']))
+            (item.get('swisid'), item.get('arrestdate'))))
+        if rows:
+            (row,) = rows
+            row_id = row['rowid']
+            cursor.execute(
+                'UPDATE bookings SET '
+                'url=?, swisid=?, name=?, age=?, gender=?, race=?, '
+                'height=?, weight=?, hair=?, eyes=?, arrestingagency=?, '
+                'arrestdate=?, parsed_arrestdate=?, '
+                'bookingdate=?, parsed_bookingdate=?, currentstatus=?, '
+                'assignedfac=?, '
+                'projreldate=?, parsed_projreldate=?, '
+                'releasedate=?, parsed_releasedate=?, '
+                'releasereason=?, mugshot_url=? '
+                'WHERE rowid=?',
+                (item.get('url'),
+                 item.get('swisid'),
+                 item.get('name'),
+                 item.get('age'),
+                 item.get('gender'),
+                 item.get('race'),
+                 item.get('height'),
+                 item.get('weight'),
+                 item.get('hair'),
+                 item.get('eyes'),
+                 item.get('arrestingagency'),
+                 item.get('arrestdate'),
+                 item.parsed_date(item.get('arrestdate')),
+                 item.get('bookingdate'),
+                 item.parsed_date(item.get('bookingdate')),
+                 item.get('currentstatus'),
+                 item.get('assignedfac'),
+                 item.get('projreldate'),
+                 item.parsed_date(item.get('projreldate')),
+                 item.get('releasedate'),
+                 item.parsed_date(item.get('releasedate')),
+                 item.get('releasereason'),
+                 item.get('mugshot_url'),
+                 row_id))
+        else:
+            # new row
+            cursor.execute(
+                'INSERT INTO bookings '
+                '(url, swisid, name, age, gender, race, '
+                'height, weight, hair, eyes, arrestingagency, '
+                'arrestdate, parsed_arrestdate, '
+                'bookingdate, parsed_bookingdate, currentstatus, assignedfac, '
+                'projreldate, parsed_projreldate, '
+                'releasedate, parsed_releasedate, '
+                'releasereason, mugshot_url) '
+                'VALUES '
+                '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '
+                '?, ?, ?, ?, ?)',
+                (item.get('url'), item.get('swisid'), item.get('name'),
+                 item.get('age'),
+                 item.get('gender'), item.get('race'), item.get('height'),
+                 item.get('weight'),
+                 item.get('hair'), item.get('eyes'),
+                 item.get('arrestingagency'),
+                 item.get('arrestdate'),
+                 item.parsed_date(item.get('arrestdate')),
+                 item.get('bookingdate'),
+                 item.parsed_date(item.get('bookingdate')),
+                 item.get('currentstatus'),
+                 item.get('assignedfac'),
+                 item.get('projreldate'),
+                 item.parsed_date(item.get('projreldate')),
+                 item.get('releasedate'),
+                 item.parsed_date(item.get('releasedate')),
+                 item.get('releasereason'),
+                 item.get('mugshot_url')))
+            # primary key is swisid + arrestdate
+            ((row_id,),) = cursor.execute(
+                'SELECT rowid FROM bookings WHERE swisid=? AND arrestdate=?',
+                (item['swisid'], item['arrestdate']))
         # delete any existing associated rows
         cursor.execute(
             'DELETE FROM charges '
