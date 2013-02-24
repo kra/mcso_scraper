@@ -1,7 +1,9 @@
-To set up and run on a current vanilla mumblemumble Ubuntu box:
+To set up and run on a current vanilla mumblemumble Ubuntu (Centos 6.3) box:
 
 This setup assumes you want to scrape daily, and the scraper will complete
 daily.  A real scheduler like supervisord is safer, but probably unecessary.
+
+* Install:
 
 apt-get install python-dev (yum install python-devel)
 apt-get install libxml2-dev libxslt-dev 
@@ -50,7 +52,7 @@ sudo -u nobody /opt/mhap/mcso_scraper/run.sh >>/var/log/mcso_scraper.log 2>>/var
 
 /var/log/mcso_scraper.log {
 	weekly
-	missingok
+	missingo
 	rotate 52
 	notifempty
 	create 640 nobody adm
@@ -59,8 +61,36 @@ sudo -u nobody /opt/mhap/mcso_scraper/run.sh >>/var/log/mcso_scraper.log 2>>/var
 
 /etc/init.d/mcso_viewer:
 
-# XXX a real init script that does this with start/stop
+# XXX needs a real init script that does this with start/stop
 
 #!/bin/bash
 cd /opt/mhap/mcso_scraper
 sudo -u nobody /opt/mhap/mcso_scraper/run_viewer.sh
+
+* Setup
+
+XXX should read from a conf file which isn't in version control
+
+Edit /opt/mhap/mcso_scraper/mcso/settings.py:
+SECRET_KEY, NOTIFY_SENDER, NOTIFY_RECIPIENTS
+
+source env/bin/activate
+scripts/add_user.py # activate_user.py deactivate_user.py
+
+* Update
+
+Stop the viewer.  Ensure that the populator isn't running and won't be while
+updating.
+
+XXX will need real versions by the time this is in testing
+
+cd /opt/mhap/mcso_scraper
+# XXX should read from a conf file which isn't in version control
+cp mcso/settings.py mcso/settings.py-
+git checkout -- settings.py
+cp -r data data-
+git pull
+# update settings.py
+# check data and operation
+rm -rf setings.py- data-
+
