@@ -79,18 +79,21 @@ scripts/add_user.py # activate_user.py deactivate_user.py
 
 * Update
 
-Stop the viewer.  Ensure that the populator isn't running and won't be while
-updating.
-
 XXX will need real versions by the time this is in testing
-
+# stop viewer
+# ensure populator isn't and won't run during update
 cd /opt/mhap/mcso_scraper
-# XXX should read from a conf file which isn't in version control
+#  backup
+# XXX should read settings from a conf file which isn't in version control
 cp mcso/settings.py mcso/settings.py-
 git checkout -- settings.py
 cp -r data data-
+# update
 git pull
-# update settings.py
+# update settings.py from settings.py-
+scripts/setup.sh
+# start viewer
 # check data and operation
+# remove backups shen desired
 rm -rf setings.py- data-
 
