@@ -26,6 +26,7 @@ pip install py-bcrypt
 scripts/setup.sh boot
 # hackish workaround for using nobody instead of a dedicated user
 find data -exec chown nobody {} \;
+find data -exec chgrp nobody {} \;
 ## open up port 80 on iptables
 #iptables -A INPUT -p tcp --dport 80 -j ACCEPT
 #/etc/init.d/iptables save
@@ -75,7 +76,7 @@ Edit /opt/mhap/mcso_scraper/mcso/settings.py:
 SECRET_KEY, NOTIFY_SENDER, NOTIFY_RECIPIENTS
 
 source env/bin/activate
-scripts/add_user.py # activate_user.py deactivate_user.py
+scripts/add_user.py # show_users.py activate_user.py deactivate_user.py
 
 * Update
 
@@ -92,8 +93,8 @@ cp -r data data-
 git pull
 # update settings.py from settings.py-
 scripts/setup.sh
+# XXX should chown nobody/nobody everything
 # start viewer
 # check data and operation
 # remove backups shen desired
 rm -rf setings.py- data-
-
