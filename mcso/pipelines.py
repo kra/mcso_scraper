@@ -1,5 +1,6 @@
 from scrapy.conf import settings
 import os
+import datetime
 import common
 
 
@@ -29,7 +30,8 @@ class McsoPipeline(object):
                 'assignedfac=?, '
                 'projreldate=?, parsed_projreldate=?, '
                 'releasedate=?, parsed_releasedate=?, '
-                'releasereason=?, mugshot_url=? '
+                'releasereason=?, mugshot_url=?, '
+                'updated_on=? '
                 'WHERE rowid=?',
                 (item.get('url'),
                  item.get('swisid'),
@@ -54,6 +56,7 @@ class McsoPipeline(object):
                  item.parsed_date(item.get('releasedate')),
                  item.get('releasereason'),
                  item.get('mugshot_url'),
+                 datetime.datetime.now(),
                  row_id))
         else:
             # new row
@@ -65,7 +68,8 @@ class McsoPipeline(object):
                 'bookingdate, parsed_bookingdate, currentstatus, assignedfac, '
                 'projreldate, parsed_projreldate, '
                 'releasedate, parsed_releasedate, '
-                'releasereason, mugshot_url) '
+                'releasereason, mugshot_url, '
+                'updated_on) '
                 'VALUES '
                 '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '
                 '?, ?, ?, ?, ?)',
@@ -86,7 +90,8 @@ class McsoPipeline(object):
                  item.get('releasedate'),
                  item.parsed_date(item.get('releasedate')),
                  item.get('releasereason'),
-                 item.get('mugshot_url')))
+                 item.get('mugshot_url'),
+                 datetime.datetime.now()))
             # primary key is swisid + arrestdate
             ((row_id,),) = cursor.execute(
                 'SELECT rowid FROM bookings WHERE swisid=? AND arrestdate=?',
