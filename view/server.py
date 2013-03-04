@@ -315,6 +315,7 @@ def data_health_booking_index():
     else:
         periods = days()
 
+    # discard period starts until we're at the start of our ofset
     to_offset = offset
     while to_offset:
         periods.next()
@@ -325,10 +326,12 @@ def data_health_booking_index():
         Yield counts of bookings in preceeding period intervals, starting
         with the most recent in the past.
         """
+        # stop when we won't find bookings anymore
         (min_date,) = common.db.row_ds(
             g.db.execute('SELECT MIN(parsed_bookingdate) FROM bookings'))
         min_date = datetime.datetime.strptime(
             min_date['MIN(parsed_bookingdate)'], '%Y-%m-%d %H:%M:%S')
+        # yield data between each two periods until we're before min_date
         end = periods.next()
         while True:
             start = periods.next()
@@ -353,8 +356,8 @@ def data_health_booking_index():
 
     period_healths = period_healths(periods)
     # We have to spool out the generator to find the total length.  For
-    # effieciency, we could find the earliest date when generating periods
-    # and only spool out that generator.
+    # efficiency, we could figure this out some other way based on the earliest
+    # available date.
     all_rows = [w for w in period_healths]
     rows = all_rows[:length]
     rows = [[row['period'],
