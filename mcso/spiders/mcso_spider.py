@@ -24,6 +24,10 @@ def booking_mugshot_dir(booking_id):
 
 class ScrapyBase(object):
     def log(self, msg, level):
+        """ Log, and send mail on error log. """
+        # XXX this doesn't cover pipeline logs or any other logging outside
+        #     of these objects.  We really want either scrapy.log.err() or
+        #     twisted.python.log.err() to be listening.
         super(ScrapyBase, self).log(msg, level)
         if level == scrapy.log.ERROR:
             common.log.send_mail(

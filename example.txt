@@ -1,15 +1,15 @@
-To set up and run on a current vanilla mumblemumble Ubuntu (Centos 6.3) box:
+To set up and run on a Centos 6.3 box:
 
 This setup assumes you want to scrape daily, and the scraper will complete
 daily.  A real scheduler like supervisord is safer, but probably unecessary.
 
 * Install:
 
-apt-get install python-dev (yum install python-devel)
-apt-get install libxml2-dev libxslt-dev 
-  (yum install libxml2-devel libxslt-devel)
-(on centos, install sudo, gcc, pyOpenSSL, openssl-devel, epel, python-pip,
-    pip install virtualenv)
+yum install postfix
+yum install python-devel
+yum install libxml2-devel libxslt-devel
+(install sudo, gcc, pyOpenSSL, openssl-devel, epel, python-pip)
+pip install virtualenv
 cd /opt/mhap
 git clone git clone git@github.com:kra/mcso_scraper.git
 cd mcso_scraper
