@@ -72,7 +72,7 @@ class McsoPipeline(object):
                 'updated_on) '
                 'VALUES '
                 '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '
-                '?, ?, ?, ?, ?)',
+                '?, ?, ?, ?, ?, ?)',
                 (item.get('url'), item.get('swisid'), item.get('name'),
                  item.get('age'),
                  item.get('gender'), item.get('race'), item.get('height'),
