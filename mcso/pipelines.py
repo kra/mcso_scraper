@@ -1,4 +1,5 @@
 from scrapy.conf import settings
+import scrapy.log
 import os
 import datetime
 import common
@@ -19,6 +20,10 @@ class McsoPipeline(object):
             'SELECT rowid FROM bookings WHERE swisid=? AND arrestdate=?',
             (item.get('swisid'), item.get('arrestdate'))))
         if rows:
+            scrapy.log.msg(
+                'Updating booking (%s, %s)' %
+                (item.get('swisid'), item.get('arrestdate')),
+                level=scrapy.log.DEBUG)
             (row,) = rows
             row_id = row['rowid']
             cursor.execute(
@@ -60,6 +65,10 @@ class McsoPipeline(object):
                  row_id))
         else:
             # new row
+            scrapy.log.msg(
+                'Creating booking (%s, %s)' %
+                (item.get('swisid'), item.get('arrestdate')),
+                level=scrapy.log.DEBUG)
             cursor.execute(
                 'INSERT INTO bookings '
                 '(url, swisid, name, age, gender, race, '
