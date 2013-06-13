@@ -8,7 +8,6 @@ import scrapy.log
 import scrapy.item
 
 import socket
-from lxml import etree
 import urllib, urlparse
 import StringIO
 
@@ -148,7 +147,7 @@ class McsoSpider(ScrapyBase, BaseSpider):
     name = "mcso"
     #allowed_domains = ["www.mcso.us"]
     start_urls = [
-        "http://www.mcso.us/PAID/Default.aspx"
+        "http://www.mcso.us/PAID"
         ]
 
     def __init__(self, *args, **kwargs):
@@ -163,9 +162,12 @@ class McsoSpider(ScrapyBase, BaseSpider):
     def absolute_url(self, response, url):
         """ Return an absolute url for given relative url and response """
         (scheme, netloc, path, params, _, _) = urlparse.urlparse(response.url)
-        # lop off end of current path, add url
-        path = '/'.join(path.split('/')[:-1])
-        path = '/'.join((path, url))
+        if url.startswith('/'):
+            path = url
+        else:
+            # lop off end of current path, add url
+            path = '/'.join(path.split('/')[:-1])
+            path = '/'.join((path, url))
         return urlparse.urlunparse((scheme, netloc, path, params, '', ''))
 
     def parse(self, response):
@@ -175,7 +177,9 @@ class McsoSpider(ScrapyBase, BaseSpider):
             self.log(
                 'Spidering bookings from the last 7 days',
                 level=scrapy.log.INFO)
-            form_data['ctl00$MainContent$PAIDBookingSearch$ddlSearchType'] = '3'
+            form_data['SearchType'] = '3'
+        else:
+            raise NotImplementedError # could implement other options
         return [
             FormRequest.from_response(
                 response, callback=self.parse_inmates, formdata=form_data)]
@@ -184,7 +188,7 @@ class McsoSpider(ScrapyBase, BaseSpider):
         """ Parse the response to our POST to get the inmates page."""
         hxs = HtmlXPathSelector(response)
         inmate_urls = hxs.select(
-            '//a[contains(@href, "BookingDetail.aspx")]/@href').extract()
+            '//a[contains(@href, "/PAID/Home/Booking")]/@href').extract()
         return [
             Request(self.absolute_url(response, inmate_url),
                     callback=self.parse_inmate)
@@ -192,35 +196,46 @@ class McsoSpider(ScrapyBase, BaseSpider):
 
     def parse_inmate(self, response):
         """ Parse the response to our GET of an inmate page. """
+        # XXX q&d throttling, there should be a smarter way
+        import time; time.sleep(1)
+
         inmate_item = InmateItem()
         inmate_item['url'] = response.url
         hxs = HtmlXPathSelector(response)
 
-        mugshot_url = self.absolute_url(response, hxs.select(
-            '//img[@id="ctl00_MainContent_mugShotImage"]/@src')[0].extract())
+        # XXX mugshot is loaded with javascript, so just get the known URL
+        # this is the low-res version, high-res needs auth
+        mugshot_url = response.url.replace('Booking', 'MugshotImage')
         inmate_item['mugshot_url'] = mugshot_url
         inmate_item['mugshot'] = self.download_image(mugshot_url)
 
+        def booking_key(key):
+            """ Return the item key corresponding to the given text label """
+            key = key.lower().replace(' ', '')
+            return {
+                'assignedfacility':'assignedfac',
+                'projectedreleasedate':'projreldate'
+                }.get(key, key)
+
         for field in hxs.select(
-            '//span[contains(@id, "ctl00_MainContent_label")]'):
-            key = field.select('@id').extract()[0]
-            key = key[len('ctl00_MainContent_label'):]
-            try:
-                value = field.select('text()').extract()[0]
-            except IndexError:
-                value = None
+            '//div[contains(@class, "grid grid-pad")]'):
+            key = booking_key(field.select('*/label/text()')[0].extract())
+            value = field.select(
+                'div[contains(@class, "display-value")]/text()'
+                )[0].extract().strip()
             try:
                 inmate_item[key.lower()] = value
             except KeyError:
                 self.log(
                     'got unexpected key %s at %s' % (key, response.url),
                     level=scrapy.log.ERROR)
+
         try:
-            (case_table,) = hxs.select(
-                '//table[@id="ctl00_MainContent_CaseDataList"]')
+            (case_table,) = hxs.select('//div[@id="charge-info"]')
         except ValueError:
             # recent bookings are not always complete
             # this might be better handled by the pipeline validator
+            # XXX should we fail the item so the stats reflect it?
             self.log('incomplete page %s, try again later' % response.url,
                      level=scrapy.log.WARNING)
             # XXX raising the Twisted TimeoutError should make the retryer
@@ -232,34 +247,37 @@ class McsoSpider(ScrapyBase, BaseSpider):
             #    meta={'attempts':response.meta.get('attempts', 0) + 1},
             #    callback=self.parse_inmate)
             return
-        # XXX can't get scrapy's xpath to do me
-        # XXX should switch earlier
-        # XXX my paths are probably just wrong - start with . to anchor
         inmate_item['cases'] = []
-        case_table = etree.fromstring(case_table.extract())
-        # cases are tables in tds of case table
-        for case in case_table.xpath('/table/tr/td/table'):
-           case_item = CaseItem()
-           (court_case_number, da_case_number, citation_number) = [
-              elt.xpath('text()')[0]
-              for elt in case.xpath(
-                  './/span[contains(@id, "ctl00_MainContent_CaseDataList")]')
-              if elt.xpath('@class="Data"')]
-           case_item['court_case_number'] = court_case_number
-           case_item['da_case_number'] = da_case_number
-           case_item['citation_number'] = citation_number
-           case_item['charges'] = []
-           for charge_row in [
-              row for row in case.xpath(
-                  './/tr[@class="GridItem"]|.//tr[@class="GridAltItem"]')]:
-              charge_item = ChargeItem()
-              (charge, bail, status) = [
-                 elt.xpath('text()')[0] for elt in charge_row.xpath('td')]
-              charge_item['charge'] = charge
-              charge_item['bail'] = bail
-              charge_item['status'] = status
-              case_item['charges'].append(charge_item)
-           inmate_item['cases'].append(case_item)
+        def header_extract(case_elt, name):
+            """ Return a value from a court case header. """
+            case_elt = case_elt.select(
+                './descendant::*[@class="%s"]' % name)[0]
+            return case_elt.select('./b/text()')[0].extract()
+        def body_extract(body_elt):
+            """ Return a value from a court case body. """
+            def value_extract(elt, name):
+                return elt.select(
+                    './descendant::*[@class="%s"]/text()' % name)[0].extract()
+            for charge in body_elt.select('ol/li'):
+                charge_item = ChargeItem()
+                charge_item['charge'] = value_extract(
+                    charge, 'charge-description-display')
+                charge_item['bail'] = value_extract(charge, 'charge-bail-value')
+                charge_item['status'] = value_extract(
+                    charge, 'charge-status-value')
+                yield charge_item
+        for case_header in case_table.select('./descendant::h3'):
+            case_item = CaseItem()
+            case_item['court_case_number'] = header_extract(
+                case_header, 'court-case-number')
+            case_item['da_case_number'] = header_extract(
+                case_header, 'da-case-number')
+            case_item['citation_number'] = header_extract(
+                case_header, 'citation-number')
+            case_body = case_header.select('following-sibling::*')[0]
+            case_item['charges'] = [
+                charge for charge in body_extract(case_body)]
+            inmate_item['cases'].append(case_item)
         return inmate_item
 
     # XXX we should do this async
