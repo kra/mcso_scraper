@@ -211,20 +211,23 @@ class McsoSpider(ScrapyBase, BaseSpider):
 
         def booking_key(key):
             """ Return the item key corresponding to the given text label """
-            key = key.lower().replace(' ', '')
+            key = key.lower().replace('person_', '')
             return {
+                'fullname':'name',
+                'bookingdatetime':'bookingdate',
+                'haircolor':'hair',
+                'eyecolor':'eyes',
                 'assignedfacility':'assignedfac',
-                'projectedreleasedate':'projreldate'
+                'projectedreleasedatetime':'projreldate',
+                'releasedatetime':'releasedate'
                 }.get(key, key)
 
         for field in hxs.select(
-            '//div[contains(@class, "grid grid-pad")]'):
-            key = booking_key(field.select('*/label/text()')[0].extract())
-            value = field.select(
-                'div[contains(@class, "display-value")]/text()'
-                )[0].extract().strip()
+            '//*[@class="booking-information"]').select('dt'):
+            key = booking_key(field.select('label/@for')[0].extract())
+            value = field.select('following-sibling::dd[1]/text()')[0].extract()
             try:
-                inmate_item[key.lower()] = value
+                inmate_item[key] = value
             except KeyError:
                 self.log(
                     'got unexpected key %s at %s' % (key, response.url),
