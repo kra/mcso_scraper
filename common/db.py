@@ -1,8 +1,9 @@
 import sqlite3
 from scrapy.conf import settings
 
-def get_conn():
-    conn = sqlite3.connect(settings['SQLITE_FILENAME'])
+def get_conn(filename=None):
+    filename = filename or settings['SQLITE_FILENAME']
+    conn = sqlite3.connect(filename)
     conn.row_factory = sqlite3.Row
     return conn
 
