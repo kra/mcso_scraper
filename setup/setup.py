@@ -76,6 +76,23 @@ def update_schema_3(conn):
     conn.execute('UPDATE config SET value=3 WHERE name="schema"')
     conn.commit()
 
+def update_schema_4(conn):
+    # remove primary key from booking table
+    conn.execute(
+        'CREATE TEMPORARY TABLE bookings_backup (mugshot_url TEXT, url TEXT, swisid TEXT, name TEXT, age TEXT, gender TEXT, race TEXT, height TEXT, weight TEXT, hair TEXT, eyes TEXT, arrestingagency TEXT, arrestdate TEXT, bookingdate TEXT, currentstatus TEXT, assignedfac TEXT, projreldate TEXT, releasedate TEXT, releasereason TEXT, parsed_arrestdate TEXT, parsed_bookingdate TEXT, parsed_projreldate TEXT, parsed_releasedate TEXT, updated_on TEXT default CURRENT_TIMESTAMP)')
+    conn.execute(
+        'INSERT INTO bookings_backup SELECT mugshot_url, url, swisid, name, age, gender, race, height, weight, hair, eyes, arrestingagency, arrestdate, bookingdate, currentstatus, assignedfac, projreldate, releasedate, releasereason, parsed_arrestdate, parsed_bookingdate, parsed_projreldate, parsed_releasedate, updated_on FROM bookings')
+    conn.execute('DROP TABLE bookings')
+    conn.execute(
+        'CREATE TABLE bookings (mugshot_url TEXT, url TEXT, swisid TEXT, name TEXT, age TEXT, gender TEXT, race TEXT, height TEXT, weight TEXT, hair TEXT, eyes TEXT, arrestingagency TEXT, arrestdate TEXT, bookingdate TEXT, currentstatus TEXT, assignedfac TEXT, projreldate TEXT, releasedate TEXT, releasereason TEXT, parsed_arrestdate TEXT, parsed_bookingdate TEXT, parsed_projreldate TEXT, parsed_releasedate TEXT, updated_on TEXT default CURRENT_TIMESTAMP)')
+    conn.execute(
+        'INSERT INTO bookings SELECT mugshot_url, url, swisid, name, age, gender, race, height, weight, hair, eyes, arrestingagency, arrestdate, bookingdate, currentstatus, assignedfac, projreldate, releasedate, releasereason, parsed_arrestdate, parsed_bookingdate, parsed_projreldate, parsed_releasedate, updated_on FROM bookings_backup')
+    conn.execute('DROP TABLE bookings_backup')
+
+    # update config table to reflect current schema version
+    conn.execute('UPDATE config SET value=3 WHERE name="schema"')
+    conn.commit()
+
 # def update_schema_4(conn):
 #     # unique index as well as primary key to preserve rowid on replace
 #     conn.execute('CREATE UNIQUE INDEX idx_u ON bookings (swisid, arrestdate)')
@@ -101,10 +118,9 @@ def update_db(conn):
     if get_schema(conn) < 3:
         print 'updating to schema 3'
         update_schema_3(conn)
-    # if get_schema(conn) < 4:
-    #     print 'updating to schema 4'
-    #     update_schema_4(conn)
-
+    if get_schema(conn) < 4:
+        print 'updating to schema 4'
+        update_schema_4(conn)
 
 if __name__ == '__main__':
     import sys
