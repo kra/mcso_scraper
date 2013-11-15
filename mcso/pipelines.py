@@ -17,12 +17,12 @@ class McsoPipeline(object):
         # XXX replace into should keep the rowid since we have a unique and
         #     primary, but isn't?  So use update/insert.
         rows = common.db.row_ds(cursor.execute(
-            'SELECT rowid FROM bookings WHERE swisid=? AND arrestdate=?',
-            (item.get('swisid'), item.get('arrestdate'))))
+            'SELECT rowid FROM bookings WHERE swisid=? AND bookingdate=?',
+            (item.get('swisid'), item.get('bookingdate'))))
         if rows:
             scrapy.log.msg(
                 'Updating booking (%s, %s)' %
-                (item.get('swisid'), item.get('arrestdate')),
+                (item.get('swisid'), item.get('bookingdate')),
                 level=scrapy.log.DEBUG)
             (row,) = rows
             row_id = row['rowid']
@@ -67,7 +67,7 @@ class McsoPipeline(object):
             # new row
             scrapy.log.msg(
                 'Creating booking (%s, %s)' %
-                (item.get('swisid'), item.get('arrestdate')),
+                (item.get('swisid'), item.get('bookingdate')),
                 level=scrapy.log.DEBUG)
             cursor.execute(
                 'INSERT INTO bookings '
@@ -101,10 +101,10 @@ class McsoPipeline(object):
                  item.get('releasereason'),
                  item.get('mugshot_url'),
                  datetime.datetime.now()))
-            # primary key is swisid + arrestdate
+            # unique key is hopefully swisid + bookingdate
             ((row_id,),) = cursor.execute(
-                'SELECT rowid FROM bookings WHERE swisid=? AND arrestdate=?',
-                (item['swisid'], item['arrestdate']))
+                'SELECT rowid FROM bookings WHERE swisid=? AND bookingdate=?',
+                (item['swisid'], item['bookingdate']))
         # delete any existing associated rows
         cursor.execute(
             'DELETE FROM charges '
